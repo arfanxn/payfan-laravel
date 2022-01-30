@@ -54,7 +54,8 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|between:2,100',
             'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|confirmed|min:6',
+            'password' => 'required|string|min:6',
+            "password_confirmation" => "required|string|min:6|same:password"
         ]);
 
         if ($validator->fails()) {
@@ -66,10 +67,15 @@ class AuthController extends Controller
             ['password' => bcrypt($request->password)]
         ));
 
+        $token = Auth::attempt([
+            "email" => $validator->validated()["email"],
+            "password" => $validator->validated()["password"]
+        ]);
+
         return response()->json([
-            'message' => 'User successfully registered',
+            'message' => 'Successfully registered, please login.',
             'user' => $user
-        ], 201);
+        ], 201)->withCookie("jwt", $token, 60 * 24);
     }
 
     /**
