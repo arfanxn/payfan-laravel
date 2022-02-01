@@ -131,7 +131,7 @@ class AuthController extends Controller
     protected function createNewToken($token)
     {
         return response()->json([
-            'access_token' => $token,
+            'access_token' => app()->environment('local') ?  $token : "Application Environment isn't local, the \"access_token\" only sent with Cookies (httpOnly = true), due to secure our clients and data",
             'token_type' => 'bearer',
             'expires_in' => Auth::factory()->getTTL() * 60,
             'user' => Auth::user()
