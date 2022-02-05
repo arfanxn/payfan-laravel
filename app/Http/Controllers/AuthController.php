@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Responses\VerificationCodeResponse;
+use App\Services\VerificationCodeService;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 
@@ -136,5 +139,45 @@ class AuthController extends Controller
             'expires_in' => Auth::factory()->getTTL() * 60,
             'user' => Auth::user()
         ])->withCookie("jwt", $token, 60 * 24);
+    }
+
+    public function createVerificationCode(Request $request)
+    {
+        $validator =  Validator::make($request->all(), [
+            "email" => "email"
+        ]);
+        $email = $validator->validated()["email"] ?? Auth::user()->email ?? null;
+
+        if ($validator->fails()) return response($validator->errors()->messages(), 422);
+
+        $verificationCode = VerificationCodeService::generate(6);
+        $hashedCode = VerificationCodeService::createHash($email, $verificationCode, 30);
+
+        Log::info("verification_code for email : $email is $verificationCode");
+
+        return response(["code" => $verificationCode, "hashed_code" => $hashedCode])
+            ->withCookie("hashed_code", $hashedCode, 30);
+    }
+
+
+    public function verifyVerificationCode(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "email" =>  "email", "code" => "required|numeric|digits:6"
+        ]);
+        $email = $validator->validated()["email"] ?? Auth::user()->email ?? null;
+        $code = $validator->validated()["code"] ?? null;
+
+        if ($validator->fails()) return response($validator->errors()->messages(), 422);
+
+        $hashedCode = VerificationCodeService::getHashedCode($request);
+
+        if (!$hashedCode) return  VerificationCodeResponse::hashedCodeNotAvailable();
+
+        $isVerified = VerificationCodeService::verify($email, $code, $hashedCode);
+
+        return $isVerified ?
+            VerificationCodeResponse::success()
+            : VerificationCodeResponse::fail();
     }
 }
