@@ -21,8 +21,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::prefix("user")->middleware("api")->group(function () {
 
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware("verification_code.verify");
     Route::post('/login', [AuthController::class, 'login'])->name("login");
+
+    Route::prefix("verification-code")->group(function () {
+        Route::post("/create", [AuthController::class, "createVerificationCode"]);
+        Route::post("/verify", [AuthController::class, "verifyVerificationCode"]);
+    });
 
     Route::middleware("auth")->group(function () {
         Route::get('/logout', [AuthController::class, 'logout']);
@@ -38,5 +43,5 @@ Route::prefix("user")->middleware("api")->group(function () {
 
 
 Route::get("test", function () {
-    return response("test");
+    return \App\Responses\VerificationCodeResponse::fail();
 });
