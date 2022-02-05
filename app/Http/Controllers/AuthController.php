@@ -144,7 +144,7 @@ class AuthController extends Controller
     public function createVerificationCode(Request $request)
     {
         $validator =  Validator::make($request->all(), [
-            "email" => "email"
+            "email" =>  [Rule::requiredIf(!Auth::check()), "email"]
         ]);
         $email = $validator->validated()["email"] ?? Auth::user()->email ?? null;
 
