@@ -33,36 +33,14 @@ class Authenticate extends Middleware
 
     public function handle($request, Closure $next, ...$guards)
     {
-        // if (
-        //     Str::contains($request->url(), "api") ||
-        //     $request->expectsJson() || $request->ajax()
-        // ) {
-        //     try {
-        //         if (!$token = Auth::parseToken()) {
-        //             return  $this->unauthorize();
-        //         } else {
-        //             return  parent::handle($request, $next, ...$guards);
-        //         }
-        //     } catch (Exception $e) {
-        //         if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenInvalidException) {
-        //             return   $this->unauthorize();
-        //         } else if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenExpiredException) {
-        //             return   $this->unauthorize();
-        //         } else if ($e instanceof \Tymon\JWTAuth\Exceptions\JWTException) {
-        //             return   $this->unauthorize();
-        //         } else {
-        //             return   $this->unauthorize();
-        //         }
-        //     }
-        //     return parent::handle($request, $next, ...$guards);
-        // }
-
         if (Str::contains($request->url(), "api")) {
-            $request->headers->set(
-                "Authorization",
-                Str::contains(strtolower(Cookie::get("jwt")), "bearer") ?
-                    Cookie::get("jwt") : "Bearer " . Cookie::get("jwt")
-            );
+            if (Cookie::has("jwt")) {
+                $request->headers->set(
+                    "Authorization",
+                    Str::contains(strtolower(Cookie::get("jwt")), "bearer") ?
+                        Cookie::get("jwt") : "Bearer " . Cookie::get("jwt")
+                );
+            }
 
             try {
                 return parent::handle($request, $next, $guards);
