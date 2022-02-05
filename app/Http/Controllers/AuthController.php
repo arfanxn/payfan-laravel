@@ -10,7 +10,7 @@ use App\Services\VerificationCodeService;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -163,7 +163,9 @@ class AuthController extends Controller
     public function verifyVerificationCode(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            "email" =>  "email", "code" => "required|numeric|digits:6"
+            "email" =>  [Rule::requiredIf(function () {
+                return !Auth::check();
+            }), "email"], "code" => "required|numeric|digits:6"
         ]);
         $email = $validator->validated()["email"] ?? Auth::user()->email ?? null;
         $code = $validator->validated()["code"] ?? null;
