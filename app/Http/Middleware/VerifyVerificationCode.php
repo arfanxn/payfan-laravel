@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class VerifyVerificationCode
 {
@@ -22,7 +23,9 @@ class VerifyVerificationCode
     public function handle(Request $request, Closure $next)
     {
         $validator = Validator::make($request->all(), [
-            "email" =>  "email", "code" => "required|numeric|digits:6"
+            "email" =>  [Rule::requiredIf(function () {
+                return !Auth::check();
+            }), "email"], "code" => "required|numeric|digits:6"
         ]);
         $email = $validator->validated()["email"] ?? Auth::user()->email ?? null;
         $code = $validator->validated()["code"] ?? null;
