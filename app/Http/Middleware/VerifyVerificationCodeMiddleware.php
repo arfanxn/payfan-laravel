@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class VerifyVerificationCode
+class VerifyVerificationCodeMiddleware
 {
     /**
      * Handle an incoming request.
@@ -43,6 +43,6 @@ class VerifyVerificationCode
             return $response->withCookie(cookie("hashed_code", null, 1));
         }
 
-        return VerificationCodeResponse::fail();
+        return VerificationCodeResponse::fail()->header("From-Middleware", __CLASS__);
     }
 }
