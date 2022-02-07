@@ -43,6 +43,6 @@ class VerifyVerificationCodeMiddleware
             return $response->withCookie(cookie("hashed_code", null, 1));
         }
 
-        return VerificationCodeResponse::fail()->header("From-Middleware", __CLASS__);
+        return VerificationCodeResponse::fail();
     }
 }
