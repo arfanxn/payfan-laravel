@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ValidatorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +18,10 @@ use App\Http\Controllers\AuthController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+});
+
+Route::prefix("validator")->group(function () {
+    Route::post("/users/email/is-taken", [ValidatorController::class, "isEmailTaken"]);
 });
 
 Route::prefix("user")->middleware("api")->group(function () {
