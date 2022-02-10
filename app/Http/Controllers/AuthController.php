@@ -155,7 +155,7 @@ class AuthController extends Controller
 
         Log::info("verification_code for email : $email is $verificationCode");
 
-        return response()->withCookie("hashed_code", $hashedCode, 30);
+        return response()->json()->withCookie(cookie("hashed_code", $hashedCode, 30));
     }
 
 
