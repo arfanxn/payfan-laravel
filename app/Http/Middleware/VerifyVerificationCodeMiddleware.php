@@ -42,7 +42,7 @@ class VerifyVerificationCodeMiddleware
 
         if ($isVerified) {
             $response = $next($request);
-            return $response->withCookie(cookie("hashed_code", null, 1));
+            return $response->withCookie(cookie("hashed_code", null, 1)); // return  response and remove cookie "hashed_code" 
         }
 
         return VerificationCodeResponse::fail()
