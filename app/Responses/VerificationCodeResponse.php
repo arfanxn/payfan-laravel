@@ -21,7 +21,7 @@ class VerificationCodeResponse
     public static function hashedCodeNotAvailable()
     {
         return response([self::ErrorMessage =>
-        "hashed_code not found or not available or not been sent."], 401);
+        "hashed_code not found or not available or not been sent."], 422);
     }
 
     public static function codeSended()

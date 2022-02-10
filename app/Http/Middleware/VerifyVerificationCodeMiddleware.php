@@ -7,7 +7,6 @@ use App\Services\VerificationCodeService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -27,14 +26,17 @@ class VerifyVerificationCodeMiddleware
                 return !Auth::check();
             }), "email"], "code" => "required|numeric|digits:6"
         ]);
+        $middlewareFailStatusText = "VerifyVerificationCodeMiddleware Has Fails!";
         $email = $validator->validated()["email"] ?? Auth::user()->email ?? null;
         $code = $validator->validated()["code"] ?? null;
 
-        if ($validator->fails()) return response($validator->errors()->messages(), 422);
+        if ($validator->fails()) return response($validator->errors()->messages())
+            ->setStatusCode(422, $middlewareFailStatusText);
 
         $hashedCode = VerificationCodeService::getHashedCode($request);
 
-        if (!$hashedCode) return VerificationCodeResponse::hashedCodeNotAvailable();
+        if (!$hashedCode) return VerificationCodeResponse::hashedCodeNotAvailable()
+            ->setStatusCode(422, $middlewareFailStatusText);
 
         $isVerified = VerificationCodeService::verify($email, $code, $hashedCode);
 
@@ -43,6 +45,7 @@ class VerifyVerificationCodeMiddleware
             return $response->withCookie(cookie("hashed_code", null, 1));
         }
 
-        return VerificationCodeResponse::fail();
+        return VerificationCodeResponse::fail()
+            ->setStatusCode(401, $middlewareFailStatusText);
     }
 }
