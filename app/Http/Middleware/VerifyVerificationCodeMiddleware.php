@@ -22,9 +22,8 @@ class VerifyVerificationCodeMiddleware
     public function handle(Request $request, Closure $next)
     {
         $validator = Validator::make($request->all(), [
-            "email" =>  [Rule::requiredIf(function () {
-                return !Auth::check();
-            }), "email"], "code" => "required|numeric|digits:6"
+            "email" =>  [Rule::requiredIf(fn () =>  !Auth::check()), "email"],
+            "code" => "required|numeric|digits:6"
         ]);
         $middlewareFailStatusText = "VerifyVerificationCodeMiddleware Has Fails!";
         $email = $validator->validated()["email"] ?? Auth::user()->email ?? null;
