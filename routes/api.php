@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\ValidatorController;
 
 /*
@@ -21,7 +22,12 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::prefix("validator")->group(function () {
-    Route::post("/users/email/is-taken", [ValidatorController::class, "isEmailTaken"]);
+    Route::prefix("users")->group(function () {
+        Route::prefix("email")->group(function () {
+            Route::post("/is-taken", [ValidatorController::class, "isEmailTaken"]);
+            Route::post("/is-taken/except/self", [ValidatorController::class, "isEmailTakenExceptSelf"]);
+        });
+    });
 });
 
 Route::prefix("user")->middleware("api")->group(function () {
@@ -43,6 +49,9 @@ Route::prefix("user")->middleware("api")->group(function () {
             Route::get('/refresh', [AuthController::class, 'refresh']);
             Route::get("/check", [AuthController::class, 'check']);
         });
+
+        Route::put("/self", [UserController::class, "update"]);
+        Route::patch("/email/self", [UserController::class, "updateEmail"])->middleware("verification_code.verify");
     });
 });
 
