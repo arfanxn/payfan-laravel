@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use App\Services\JWTService;
 
 class AuthController extends Controller
 {
@@ -143,12 +144,19 @@ class AuthController extends Controller
 
     public function createVerificationCode(Request $request)
     {
-        $validator =  Validator::make($request->all(), [
-            "email" =>  [Rule::requiredIf(!Auth::check()), "email"]
+        $validator = Validator::make($request->only("email"), [
+            "email" =>  [Rule::requiredIf(!Cookie::has("jwt"))]
         ]);
-        $email = $validator->validated()["email"] ?? Auth::user()->email ?? null;
 
         if ($validator->fails()) return response($validator->errors()->messages(), 422);
+
+        $email = $validator->validated()["email"] ??  null;
+
+        if (Cookie::has("jwt") && !$validator->validated()["email"]) {
+            $jwtPayl = JWTService::getPayload();
+            $email = User::where("id", $jwtPayl->sub)
+                ->first()->email;
+        }
 
         $verificationCode = VerificationCodeService::generate(6);
         $hashedCode = VerificationCodeService::createHash($email, $verificationCode, 30);
