@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class ValidatorController extends Controller
@@ -34,5 +36,25 @@ class ValidatorController extends Controller
             [$validator->errors()->messages(), "valid" => false],
             422
         ) : $this->responseValid();
+    }
+
+    public function passwordCheck(Request $request)
+    {
+        $validator = Validator::make($request->only(["password"]), [
+            "password" => "required|string"
+        ]);
+
+        if ($validator->fails())
+            return response()->json(
+                [$validator->errors()->messages(), "valid" => false],
+                422
+            );
+
+        if (Hash::check(
+            $validator->validated()["password"] ?? null,
+            Auth::user()->password,
+        )) return  $this->responseValid();
+
+        return  $this->responseValid(false)->setStatusCode(403);
     }
 }
