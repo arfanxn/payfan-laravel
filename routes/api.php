@@ -28,6 +28,15 @@ Route::prefix("validator")->group(function () {
             Route::post("/is-taken/except/self", [ValidatorController::class, "isEmailTakenExceptSelf"]);
         });
     });
+
+    Route::prefix("user")->group(function () {
+        Route::middleware("auth")->group(function () {
+            Route::prefix("password")->group(function () {
+                Route::post("/check/self", [ValidatorController::class, "passwordCheck"])
+                    ->middleware("auth");
+            });
+        });
+    });
 });
 
 Route::prefix("user")->middleware("api")->group(function () {
@@ -51,7 +60,12 @@ Route::prefix("user")->middleware("api")->group(function () {
         });
 
         Route::put("/self", [UserController::class, "update"]);
-        Route::patch("/email/self", [UserController::class, "updateEmail"])->middleware("verification_code.verify");
+        Route::patch("/name/self", [UserController::class, "updateName"]);
+
+        Route::middleware("verification_code.verify")->group(function () {
+            Route::patch("/email/self", [UserController::class, "updateEmail"]);
+            Route::patch("/password/self", [UserController::class, "updatePassword"]);
+        });
     });
 });
 
