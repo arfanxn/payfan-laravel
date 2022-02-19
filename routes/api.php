@@ -61,7 +61,7 @@ Route::prefix("user")->middleware("api")->group(function () {
 
         Route::put("/self", [UserController::class, "update"]);
         Route::patch("/name/self", [UserController::class, "updateName"]);
-
+        Route::post("/profile-pict/self", [UserController::class, "updateProfilePict"]);
         Route::middleware("verification_code.verify")->group(function () {
             Route::patch("/email/self", [UserController::class, "updateEmail"]);
             Route::patch("/password/self", [UserController::class, "updatePassword"]);
@@ -71,6 +71,6 @@ Route::prefix("user")->middleware("api")->group(function () {
 
 
 
-Route::get("test", function () {
-    return \App\Responses\VerificationCodeResponse::fail();
+Route::post("test", function (Request  $request) {
+    return  dd($request->files);
 });
