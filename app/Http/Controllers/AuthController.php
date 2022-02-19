@@ -68,7 +68,7 @@ class AuthController extends Controller
 
         $user = User::create(array_merge(
             $validator->validated(),
-            ['password' => bcrypt($request->password)]
+            ["name" => ucwords($request->name), 'password' => bcrypt($request->password)]
         ));
 
         $token = Auth::attempt([
