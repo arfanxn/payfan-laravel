@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ValidatorController;
+use Illuminate\Support\Facades\Storage;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,7 +26,10 @@ Route::prefix("validator")->group(function () {
     Route::prefix("users")->group(function () {
         Route::prefix("email")->group(function () {
             Route::post("/is-taken", [ValidatorController::class, "isEmailTaken"]);
-            Route::post("/is-taken/except/self", [ValidatorController::class, "isEmailTakenExceptSelf"]);
+            Route::post("/is-taken/except/self", [
+                ValidatorController::class,
+                "isEmailTakenExceptSelf"
+            ])->middleware("auth");
         });
     });
 
@@ -59,6 +63,7 @@ Route::prefix("user")->middleware("api")->group(function () {
             Route::get("/check", [AuthController::class, 'check']);
         });
 
+        Route::get("/self", [UserController::class, "self"]);
         Route::put("/self", [UserController::class, "update"]);
         Route::patch("/name/self", [UserController::class, "updateName"]);
         Route::post("/profile-pict/self", [UserController::class, "updateProfilePict"]);
@@ -72,5 +77,5 @@ Route::prefix("user")->middleware("api")->group(function () {
 
 
 Route::post("test", function (Request  $request) {
-    return  dd($request->files);
+    return asset(Storage::url("images/profile_pict/muhammadarfan1645263199.jpg"));
 });
