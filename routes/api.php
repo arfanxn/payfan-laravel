@@ -77,5 +77,5 @@ Route::prefix("user")->middleware("api")->group(function () {
 
 
 Route::post("test", function (Request  $request) {
-    return asset(Storage::url("images/profile_pict/muhammadarfan1645263199.jpg"));
+    return now()->toDateTimeString();
 });

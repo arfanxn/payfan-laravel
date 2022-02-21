@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Exception;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -10,7 +11,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -23,7 +24,8 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
-        "profile_pict"
+        "profile_pict",
+        "email_verified_at"
     ];
 
     /**
@@ -63,5 +65,13 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function markEmailAsVerified()
+    {
+        $isMarkingSuccess = $this->update([
+            "email_verified_at" => now()->toDateTimeString(),
+        ]);
+        return $isMarkingSuccess ?  $this : throw new Exception("user->email_verified_at : update fail!");
     }
 }
