@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\StrHelper;
+use App\Helpers\URLHelper;
+use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Responses\ErrorsResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -12,6 +15,11 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
+    public function self()
+    {
+        return (new UserResource(Auth::user()))->toResponse(request())->setStatusCode(200);
+    }
+
     public function update(Request $request)
     {
         $user = User::where("id", Auth::id());
@@ -38,7 +46,10 @@ class UserController extends Controller
         ]);
         if ($validator->fails()) return response()->json($validator->errors()->messages())->setStatusCode(422);
 
-        $isUpdateSuccess = User::where("id", Auth::id())->update(["email" => $request->email]);
+        $isUpdateSuccess = User::where("id", Auth::id())->update([
+            "email_verified_at"  => now()->toDateTimeString(),
+            "email" => $request->email
+        ]);
 
         return $isUpdateSuccess ? response("Update success")
             : response("Update failed", 500);
@@ -92,10 +103,15 @@ class UserController extends Controller
 
         Log::info($request->file("profile_pict"));
 
-        $request->file("profile_pict")->storeAs("public", $fileName);
+        $storingToStorage = $request->file("profile_pict")->storeAs("public/images/user/profile_pict", $fileName);
 
-        User::where("id", Auth::id())->update([
+        $updateTheUser =  User::where("id", Auth::id())->update([
             "profile_pict" =>  $fileName,
         ]);
+
+        return $storingToStorage && $updateTheUser ?  response()->json([
+            "message" => "profile picture update successfully",
+            "profile_pict" => URLHelper::userProfilePict($fileName),
+        ], 200) : ErrorsResponse::server();
     }
 }
