@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 
 class ValidatorController extends Controller
@@ -30,7 +31,8 @@ class ValidatorController extends Controller
     public function isEmailTakenExceptSelf(Request $request)
     {
         $validator = Validator::make($request->only("email"), [
-            "email" => "required|email|unique:users,email," . Auth::id()
+            "email" => ["required", "email",  Rule::unique('users', 'email')
+                ->ignore(Auth::id())]
         ]);
         return $validator->fails() ? response()->json(
             [$validator->errors()->messages(), "valid" => false],
