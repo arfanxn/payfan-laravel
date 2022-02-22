@@ -9,6 +9,8 @@ class Transaction extends Model
 {
     use HasFactory;
 
+    protected const CREATED_AT = null, UPDATED_AT = null;
+
     protected $fillable = [
         "tx_hash", "from_wallet", "to_wallet", "status", "type", "note",
         "amount", "charge", "created_at", "completed_at"
