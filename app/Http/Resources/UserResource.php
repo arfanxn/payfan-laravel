@@ -23,7 +23,8 @@ class UserResource extends JsonResource
             "email_verified_at" => $this->email_verified_at,
             "profile_pict" => URLHelper::userProfilePict(isset($this->profile_pict) && $this->profile_pict  ? $this->profile_pict : null),
             "created_at" => $this->created_at,
-            "updated_at" => $this->updated_at
+            "updated_at" => $this->updated_at,
+            "settings" => $this->whenLoaded("settings", fn () => $this->settings)
         ];
     }
 }

@@ -17,7 +17,8 @@ class UserController extends Controller
 {
     public function self()
     {
-        return (new UserResource(Auth::user()))->toResponse(request())->setStatusCode(200);
+        return (new UserResource(User::with("settings")->where("id", Auth::id())->first()))
+            ->toResponse(request())->setStatusCode(200);
     }
 
     public function update(Request $request)
