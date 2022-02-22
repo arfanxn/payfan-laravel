@@ -74,4 +74,14 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         ]);
         return $isMarkingSuccess ?  $this : throw new Exception("user->email_verified_at : update fail!");
     }
+
+    public function settings()
+    {
+        return $this->hasOne(UserSetting::class, "user_id");
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, "user_id");
+    }
 }
