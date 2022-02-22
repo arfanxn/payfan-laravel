@@ -99,7 +99,8 @@ class UserController extends Controller
         ]);
         if ($validator->fails()) return response()->json($validator->errors()->messages(), 422);
 
-        $fileName = StrHelper::make(Auth::user()->name)->removeWhitespace()->toLowerCase()->limit(20)->get() . now()->timestamp . "."  . $request->file("profile_pict")->extension();
+        $authUserName = Auth::user()->name;
+        $fileName = now()->timestamp . StrHelper::random(strlen($authUserName), $authUserName) . "."  . $request->file("profile_pict")->extension();
 
         Log::info($request->file("profile_pict"));
 
