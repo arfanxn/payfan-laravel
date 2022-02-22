@@ -15,4 +15,14 @@ class UserSetting extends Model
         "user_id", "two_factor_auth", "security_question", "security_answer",
         "payment_notification", "request_notification", "receive_notification", 'updated_at'
     ];
+
+    protected $hidden = [
+        'security_answer',
+    ];
+
+    public function disableOrEnable2FA()
+    {
+        $this->two_factor_auth = !$this->two_factor_auth;
+        return $this->save();
+    }
 }
