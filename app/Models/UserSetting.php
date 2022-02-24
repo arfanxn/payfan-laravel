@@ -25,4 +25,9 @@ class UserSetting extends Model
         $this->two_factor_auth = !$this->two_factor_auth;
         return $this->save();
     }
+
+    public function isRequire2FA(): bool
+    {
+        return  boolval($this->two_factor_auth);
+    }
 }
