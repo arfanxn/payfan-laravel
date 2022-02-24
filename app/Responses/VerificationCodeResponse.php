@@ -2,6 +2,8 @@
 
 namespace App\Responses;
 
+use App\Services\JWTService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\App;
 
 class VerificationCodeResponse
@@ -13,6 +15,12 @@ class VerificationCodeResponse
     {
         return response([self::Message => "Verified"], 200)
             ->withCookie(cookie("hashed_code", null, 1));
+    }
+
+    public static function successAndLogin($token, $message = "Successfully logged in."): JsonResponse
+    {
+        return JWTService::responseNewToken($token,  $message)
+            ->withCookie(cookie("hashed_code", null, 1));;
     }
 
     public static function fail()
