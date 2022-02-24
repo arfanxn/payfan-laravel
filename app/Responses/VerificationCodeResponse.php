@@ -2,6 +2,8 @@
 
 namespace App\Responses;
 
+use Illuminate\Support\Facades\App;
+
 class VerificationCodeResponse
 {
     private const Message = "verification_code_message";
@@ -21,7 +23,9 @@ class VerificationCodeResponse
     public static function hashedCodeNotAvailable()
     {
         return response([self::ErrorMessage =>
-        "hashed_code not found or not available or not been sent."], 422);
+        App::environment("local") ?
+            "hashed_code not found or not available or not been sent." :
+            "Please resend a new Verification Code."], 422);
     }
 
     public static function codeSended()
