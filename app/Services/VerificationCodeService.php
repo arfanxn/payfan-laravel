@@ -17,7 +17,7 @@ class VerificationCodeService
         return env("APP_KEY", "default_secret_key");
     }
 
-    public static function getHashedCode(Request $request): string
+    public static function getHashedCode(Request $request)
     {
         $validator = Validator::make($request->only("hashed_code"), [
             "hashed_code" => "nullable|string"
