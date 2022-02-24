@@ -17,4 +17,9 @@ class Contact extends Model
         "owner_id", "saved_id", "status",
         "total_transaction", 'last_transaction', 'added_at'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, "saved_id", "id");
+    }
 }
