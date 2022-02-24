@@ -3,10 +3,10 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SearchPeopleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserSettingController;
 use App\Http\Controllers\ValidatorController;
-use Illuminate\Support\Facades\Storage;
 
 /*
 |--------------------------------------------------------------------------
@@ -82,6 +82,8 @@ Route::prefix("user")->middleware("api")->group(function () {
         });
     });
 });
+
+Route::post("users-and-contacts/search", [SearchPeopleController::class, "searchUsersNContacts"])->middleware("auth");
 
 
 
