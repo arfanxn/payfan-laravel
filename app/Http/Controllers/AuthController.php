@@ -34,18 +34,42 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string|min:8',
+            "code" => "nullable|string|digits:6"
         ]);
-
         if ($validator->fails()) {
             return response()->json($validator->errors()->messages(), 422);
         }
 
-        if (!$token = Auth::attempt($validator->validated())) {
-            return response()->json(["password" => "Your credentials doesnt match our records",  'error' => 'Unauthorized'], 401);
+        if (!$token = Auth::attempt([
+            "email" => $validator->validated()["email"],
+            "password" => $validator->validated()["password"]
+        ])) {
+            return response()->json(["password" => "Your credentials doesn't match our records",  'error_message' => 'Unauthorized'], 401);
         }
 
-        return $this->createNewToken($token);
+        $isRequire2FA = Auth::user()->settings->isRequire2FA();
+        if ($isRequire2FA) {
+            if (!isset($validator->validated()["code"]) || !$validator->validated()["code"])
+                return response()
+                    ->json(["error_message" => "Verification Code required to verify it's your"])
+                    ->setStatusCode(422, 'Require2FA');
+
+            $hashedCode = VerificationCodeService::getHashedCode($request);
+            if (!$hashedCode)
+                return VerificationCodeResponse::hashedCodeNotAvailable();
+
+
+            $isVerified =  VerificationCodeService::verify(
+                $validator->validated()["email"],
+                $validator->validated()["code"],
+                $hashedCode
+            );
+            return $isVerified ? VerificationCodeResponse::successAndLogin($token)
+                : VerificationCodeResponse::fail()->setStatusCode(401, "VerifyVerificationCodeMiddleware");
+        } else {
+            return JWTService::responseNewToken($token, "Successfully logged in");
+        }
     }
 
     /**
@@ -58,8 +82,8 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|between:2,100',
             'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|min:6',
-            "password_confirmation" => "required|string|min:6|same:password"
+            'password' => 'required|string|min:8',
+            "password_confirmation" => "required|string|min:8|same:password"
         ]);
 
         if ($validator->fails()) {
@@ -110,16 +134,6 @@ class AuthController extends Controller
     }
 
     /**
-     * Refresh a token.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function refresh()
-    {
-        return $this->createNewToken(Auth::refresh());
-    }
-
-    /**
      * Get the authenticated User.
      *
      * @return \Illuminate\Http\JsonResponse
@@ -127,23 +141,6 @@ class AuthController extends Controller
     public function userProfile()
     {
         return response()->json(["user" => Auth::user()]);
-    }
-
-    /**
-     * Get the token array structure.
-     *
-     * @param  string $token
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    protected function createNewToken($token)
-    {
-        return response()->json([
-            'access_token' => app()->environment('local') ?  $token : "Application Environment isn't local, the \"access_token\" only sent with Cookies (httpOnly = true), due to secure our clients and data",
-            'token_type' => 'bearer',
-            'expires_in' => Auth::factory()->getTTL() * 60,
-            'user' => Auth::user()
-        ])->withCookie("jwt", $token, 60 * 24);
     }
 
     public function createVerificationCode(Request $request)
