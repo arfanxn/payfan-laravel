@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Contact;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -19,7 +20,7 @@ class CreateContactsTable extends Migration
                 ->onDelete("cascade")->onUpdate("cascade");
             $table->foreignId("saved_id")->constrained("users", "id")
                 ->onDelete("cascade")->onUpdate("cascade");
-            $table->string("status")->nullable(); // status =  null / favorited / blocked  ; 
+            $table->string("status")->default(Contact::STATUS_ADDED); // status =  null / favorited / blocked  ; 
             $table->unsignedBigInteger("total_transaction")->default(0);
             $table->timestamp("last_transaction")->nullable();
             $table->timestamp("added_at")->nullable();
