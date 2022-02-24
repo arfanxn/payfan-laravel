@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Validator;
@@ -18,10 +17,10 @@ class VerificationCodeService
         return env("APP_KEY", "default_secret_key");
     }
 
-    public static function getHashedCode(Request $request)
+    public static function getHashedCode(Request $request): string
     {
         $validator = Validator::make($request->only("hashed_code"), [
-            "hashed_code" => "string"
+            "hashed_code" => "nullable|string"
         ]);
         $hashedCode = Cookie::has("hashed_code") ? Cookie::get("hashed_code")
             : $validator->validated()["hashed_code"] ?? null;
