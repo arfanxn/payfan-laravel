@@ -7,6 +7,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\HasApiTokens;
 
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -83,5 +84,17 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function notifications()
     {
         return $this->hasMany(Notification::class, "user_id");
+    }
+
+
+    public function addedContacts()
+    {
+        return $this->hasMany(Contact::class, "owner_id")->where("status", Contact::STATUS_ADDED);
+    }
+
+    public function isAddedBySelf($owner_id = null)
+    {
+        $owner_id = Auth::id();
+        return $this->hasOne(Contact::class, "saved_id")->where("owner_id", $owner_id);
     }
 }
