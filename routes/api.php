@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserSettingController;
 use App\Http\Controllers\ValidatorController;
 use Illuminate\Support\Facades\Storage;
 
@@ -63,6 +64,14 @@ Route::prefix("user")->middleware("api")->group(function () {
             Route::get("/check", [AuthController::class, 'check']);
         });
 
+        Route::prefix("settings")->group(function () {
+            Route::middleware("verification_code.verify")->group(function () {
+                Route::patch("/2fa/self", [UserSettingController::class, "disableOrEnable2FA"]);
+                Route::patch("security-question/self", [UserSettingController::class, "updateSecurityQuestion"]);
+            });
+            Route::patch("notifications", [UserSettingController::class, "updateNotificationSettings"]);
+        });
+
         Route::get("/self", [UserController::class, "self"]);
         Route::put("/self", [UserController::class, "update"]);
         Route::patch("/name/self", [UserController::class, "updateName"]);
@@ -77,5 +86,4 @@ Route::prefix("user")->middleware("api")->group(function () {
 
 
 Route::post("test", function (Request  $request) {
-    return now()->toDateTimeString();
 });
