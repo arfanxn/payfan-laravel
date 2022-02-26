@@ -68,7 +68,7 @@ class AuthController extends Controller
             return $isVerified ? VerificationCodeResponse::successAndLogin($token)
                 : VerificationCodeResponse::fail()->setStatusCode(277, "VerifyVerificationCodeMiddleware");
         } else {
-            return JWTService::responseNewToken($token, "Successfully logged in");
+            return JWTService::responseNewToken($token, "Successfully logged in.");
         }
     }
 
