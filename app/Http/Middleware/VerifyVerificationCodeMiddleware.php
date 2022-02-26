@@ -45,6 +45,6 @@ class VerifyVerificationCodeMiddleware
         }
 
         return VerificationCodeResponse::fail()
-            ->setStatusCode(401, $middlewareFailStatusText);
+            ->setStatusCode(277, $middlewareFailStatusText);
     }
 }

@@ -25,7 +25,7 @@ class VerificationCodeResponse
 
     public static function fail()
     {
-        return response([self::ErrorMessage => "OTP or Verification Code are incorect!"], 401);
+        return response([self::ErrorMessage => "OTP or Verification Code are incorect!"],  277);
     }
 
     public static function hashedCodeNotAvailable()
