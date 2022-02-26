@@ -6,7 +6,7 @@ use App\Models\Contact;
 
 class ContactRepository
 {
-    public static function getNotBlocked(int $owner_id)
+    public static function whereNotBlocked(int $owner_id)
     {
         return Contact::with("user")->where("owner_id", $owner_id)
             ->where("status", "!=", Contact::STATUS_BLOCKED)->orderBy("last_transaction", 'desc');
