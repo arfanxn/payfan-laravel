@@ -2,10 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Contact;
+use App\Models\User;
+use App\Repositories\ContactRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ContactController extends Controller
 {
+    public function whereNotBlocked(Request $request)
+    {
+        $contacts = ContactRepository::getNotBlocked(Auth::id())->paginate(50);
+        return response()->json(["contacts" => $contacts]);
+    }
+
     /**
      * Display a listing of the resource.
      *
