@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\SearchPeopleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserSettingController;
@@ -64,26 +65,30 @@ Route::prefix("user")->middleware("api")->group(function () {
             Route::get("/check", [AuthController::class, 'check']);
         });
 
-        Route::prefix("settings")->group(function () {
+        Route::prefix("self")->group(function () {
+            Route::get("", [UserController::class, "self"]);
+            Route::put("", [UserController::class, "update"]);
+            Route::patch("/name", [UserController::class, "updateName"]);
+            Route::post("/profile-pict", [UserController::class, "updateProfilePict"]);
             Route::middleware("verification_code.verify")->group(function () {
-                Route::patch("/2fa/self", [UserSettingController::class, "disableOrEnable2FA"]);
-                Route::patch("security-question/self", [UserSettingController::class, "updateSecurityQuestion"]);
+                Route::patch("/email", [UserController::class, "updateEmail"]);
+                Route::patch("/password", [UserController::class, "updatePassword"]);
             });
-            Route::patch("notifications", [UserSettingController::class, "updateNotificationSettings"]);
-        });
 
-        Route::get("/self", [UserController::class, "self"]);
-        Route::put("/self", [UserController::class, "update"]);
-        Route::patch("/name/self", [UserController::class, "updateName"]);
-        Route::post("/profile-pict/self", [UserController::class, "updateProfilePict"]);
-        Route::middleware("verification_code.verify")->group(function () {
-            Route::patch("/email/self", [UserController::class, "updateEmail"]);
-            Route::patch("/password/self", [UserController::class, "updatePassword"]);
+            Route::prefix("settings")->middleware("verification_code.verify")->group(function () {
+                Route::patch("/2fa", [UserSettingController::class, "disableOrEnable2FA"]);
+                Route::patch("security-question", [UserSettingController::class, "updateSecurityQuestion"]);
+                Route::patch("notifications", [UserSettingController::class, "updateNotificationSettings"]);
+            });
+
+            Route::prefix("contacts")->group(function () {
+                Route::get("where-not-blocked", [ContactController::class,  'whereNotBlocked']);
+            });
         });
     });
 });
 
-Route::post("users-and-contacts/search", [SearchPeopleController::class, "searchUsersNContacts"])->middleware("auth");
+Route::get("users-and-contacts/search", [SearchPeopleController::class, "searchExceptSelf"])->middleware("auth");
 
 
 
