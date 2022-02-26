@@ -11,7 +11,7 @@ class Contact extends Model
 
     public const UPDATED_AT = null, CREATED_AT = null;
 
-    public const STATUS_ADDED = "ADDED", STATUS_BLOCKED = "BLOCKED";
+    public const STATUS_ADDED = "ADDED", STATUS_FAVORITED = "FAVORITED",  STATUS_BLOCKED = "BLOCKED";
 
     protected $fillable = [
         "owner_id", "saved_id", "status",
