@@ -2,17 +2,26 @@
 
 namespace App\Helpers;
 
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
 class URLHelper
 {
     public static function userProfilePict($profile_pict_filename = null)
     {
-        if (is_null($profile_pict_filename) || !$profile_pict_filename)
-            $profile_pict_filename = "default-profile-pict.png";
-        // else if (Storage::exists(public_path())) {
-        // }
+        $profile_pict_filename;
+        if (Str::contains($profile_pict_filename, "#")) return $profile_pict_filename;
 
-        return asset(Storage::url("images/user/profile_pict/$profile_pict_filename"));
+        $path = "images/user/profile_pict/";
+        $default = "default-profile-pict.png";
+
+        if (is_null($profile_pict_filename) || !$profile_pict_filename)
+            $profile_pict_filename = $default;
+
+        if (!Storage::disk("public")->exists($path . $profile_pict_filename)) {
+            $profile_pict_filename = $default;
+        }
+
+        return asset(Storage::url($path . $profile_pict_filename));
     }
 }
