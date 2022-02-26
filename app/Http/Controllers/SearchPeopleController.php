@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ContactResource;
+use App\Http\Resources\UserResource;
 use App\Models\Contact;
 use App\Models\User;
 use App\Repositories\ContactRepository;
@@ -25,12 +27,20 @@ class SearchPeopleController extends Controller
 
         $user_ids = array_map(fn ($user) => $user["id"], $users->toArray());
         $usersInContacts = ContactRepository::getUsersFromAddedContacts(Auth::id(), $user_ids)
-            ->orderBy('added_at', "desc")->get()->toArray();
+            ->orderBy('added_at', "desc")->get();
+
+        if (!empty($users->toArray())) {
+            $users = UserResource::collection($users);
+        }
+        if (!empty($usersInContacts->toArray())) {
+            $usersInContacts = ContactResource::collection($usersInContacts);
+        }
+
 
         return response()->json([
             "message" => ($users || $usersInContacts) ? "Results for $keyword"
                 : "No results for $keyword",
-            "users" => $users, "contacts" => $usersInContacts
+            "users" => $users ?? null, "contacts" => $usersInContacts ?? null
         ]);
     }
 }

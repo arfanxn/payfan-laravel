@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ContactResource;
 use App\Models\Contact;
 use App\Models\User;
 use App\Repositories\ContactRepository;
@@ -12,8 +13,9 @@ class ContactController extends Controller
 {
     public function whereNotBlocked(Request $request)
     {
-        $contacts = ContactRepository::getNotBlocked(Auth::id())->paginate(50);
-        return response()->json(["contacts" => $contacts]);
+        $contacts = ContactRepository::whereNotBlocked(Auth::id())->paginate(50);
+        $contacts = ContactResource::collection($contacts);
+        return response()->json(["contacts" => $contacts ?? null]);
     }
 
     /**
