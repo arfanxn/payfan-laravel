@@ -24,7 +24,7 @@ class StrHelper
     ) {
         $chars = str_split(self::make(str_shuffle($chars))->removeWhitespace()->result());
         $randStr = "";
-        for ($i = 0; $i <= $len; $i++) {
+        for ($i = 1; $i <= $len; $i++) {
             $charIndex =  mt_rand(0, count($chars) - 1);
             $randStr .= random_int(0, 2147483646) % 2  == 0 ?
                 strtoupper($chars[$charIndex]) : strtolower($chars[$charIndex]);
