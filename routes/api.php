@@ -82,7 +82,7 @@ Route::prefix("user")->middleware("api")->group(function () {
             });
 
             Route::prefix("contacts")->group(function () {
-                Route::get("where-not-blocked", [ContactController::class,  'whereNotBlocked']);
+                Route::get("top-contacts", [ContactController::class,  'topContacts']);
             });
         });
     });
@@ -93,4 +93,5 @@ Route::get("users-and-contacts/search", [SearchPeopleController::class, "searchE
 
 
 Route::post("test", function (Request  $request) {
+    return response();
 });
