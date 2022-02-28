@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Auth;
 
 class ContactController extends Controller
 {
-    public function whereNotBlocked(Request $request)
+    public function topContacts(Request $request)
     {
-        $contacts = ContactRepository::whereNotBlocked(Auth::id())->paginate(50);
+        $contacts = ContactRepository::getTopContacts(Auth::id());
         $contacts = ContactResource::collection($contacts);
         return response()->json(["contacts" => $contacts]);
     }

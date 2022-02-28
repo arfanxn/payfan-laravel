@@ -6,10 +6,15 @@ use App\Models\Contact;
 
 class ContactRepository
 {
-    public static function whereNotBlocked(int $owner_id)
+    public static function getTopContacts(int $owner_id)
     {
-        return Contact::with("user")->where("owner_id", $owner_id)
-            ->where("status", "!=", Contact::STATUS_BLOCKED)->orderBy("last_transaction", 'desc');
+        $favoritedContact = Contact::with("user")->where("owner_id", $owner_id)
+            ->where("status", Contact::STATUS_FAVORITED)->orderBy("last_transaction", 'desc')->limit(30)->get();
+
+        $addedContact = Contact::with("user")->where("owner_id", $owner_id)
+            ->where("status", Contact::STATUS_ADDED)->orderBy("last_transaction", 'desc')->limit(40)->get();
+
+        return $favoritedContact->merge($addedContact);
     }
 
     public static function usersFromAddedContacts(int $owner_id, array $saved_ids = [])
