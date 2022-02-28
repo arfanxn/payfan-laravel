@@ -9,8 +9,9 @@ class URLHelper
 {
     public static function userProfilePict($profile_pict_filename = null)
     {
-        $profile_pict_filename;
         if (Str::contains($profile_pict_filename, "#")) return $profile_pict_filename;
+
+        $profile_pict_filename = Str::afterLast($profile_pict_filename, "/");
 
         $path = "images/user/profile_pict/";
         $default = "default-profile-pict.png";
