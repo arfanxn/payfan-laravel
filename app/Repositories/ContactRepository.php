@@ -8,11 +8,17 @@ class ContactRepository
 {
     public static function getTopContacts(int $owner_id)
     {
+        $maxGetLimit = 50;
         $favoritedContact = Contact::with("user")->where("owner_id", $owner_id)
-            ->where("status", Contact::STATUS_FAVORITED)->orderBy("last_transaction", 'desc')->limit(30)->get();
+            ->where("status", Contact::STATUS_FAVORITED)->orderBy("last_transaction", 'desc')->limit($maxGetLimit)->get();
+
+        $arrayedFavoritedContact = $favoritedContact->toArray();
+        if (count($arrayedFavoritedContact) >= $maxGetLimit)
+            return $favoritedContact;
 
         $addedContact = Contact::with("user")->where("owner_id", $owner_id)
-            ->where("status", Contact::STATUS_ADDED)->orderBy("last_transaction", 'desc')->limit(40)->get();
+            ->where("status", Contact::STATUS_ADDED)->orderBy("last_transaction", 'desc')
+            ->limit($maxGetLimit -  count($arrayedFavoritedContact))->get();
 
         return $favoritedContact->merge($addedContact);
     }
