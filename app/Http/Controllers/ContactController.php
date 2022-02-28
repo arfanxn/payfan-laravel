@@ -15,7 +15,7 @@ class ContactController extends Controller
     {
         $contacts = ContactRepository::whereNotBlocked(Auth::id())->paginate(50);
         $contacts = ContactResource::collection($contacts);
-        return response()->json(["contacts" => $contacts ?? null]);
+        return response()->json(["contacts" => $contacts]);
     }
 
     /**
