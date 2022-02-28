@@ -26,7 +26,7 @@ class SearchPeopleController extends Controller
         })->orderBy("created_at", "desc")->get();
 
         $user_ids = array_map(fn ($user) => $user["id"], $users->toArray());
-        $usersInContacts = ContactRepository::getUsersFromAddedContacts(Auth::id(), $user_ids)
+        $usersInContacts = ContactRepository::usersFromAddedContacts(Auth::id(), $user_ids)
             ->orderBy('added_at', "desc")->get();
 
         if (!empty($users->toArray())) {

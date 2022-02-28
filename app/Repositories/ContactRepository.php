@@ -12,7 +12,7 @@ class ContactRepository
             ->where("status", "!=", Contact::STATUS_BLOCKED)->orderBy("last_transaction", 'desc');
     }
 
-    public static function getUsersFromAddedContacts(int $owner_id, array $saved_ids = [])
+    public static function usersFromAddedContacts(int $owner_id, array $saved_ids = [])
     {
         $contacts = Contact::with("user")->where("status", "!=", Contact::STATUS_BLOCKED)
             ->where(function ($query)  use ($saved_ids, $owner_id) {
