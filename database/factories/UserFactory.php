@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Helpers\StrHelper;
 use Faker\Factory as WithFaker;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -18,11 +19,18 @@ class UserFactory extends Factory
     {
         $faker_ID = WithFaker::create("id_ID");
 
+        $images =  \Illuminate\Support\Facades\Storage::allFiles("public/images/user/profile_pict");
+        $image = $images[rand(0, count($images) - 1)];
+        $useProfilePict = rand(0, 1);
+        $ifNotUseProfilePict = "#"  . StrHelper::random(6,  "1234567890ABCDEF");
+
         return [
             'name' => $faker_ID->name(),
             'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+            'password' =>  bcrypt(StrHelper::random(50)),
+            // '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+            "profile_pict" => $useProfilePict ? $image : $ifNotUseProfilePict,
             'remember_token' => Str::random(10),
         ];
     }
