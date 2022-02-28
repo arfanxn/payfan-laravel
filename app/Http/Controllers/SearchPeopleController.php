@@ -29,18 +29,26 @@ class SearchPeopleController extends Controller
         $usersInContacts = ContactRepository::usersFromAddedContacts(Auth::id(), $user_ids)
             ->orderBy('added_at', "desc")->get();
 
-        if (!empty($users->toArray())) {
-            $users = UserResource::collection($users);
+        $userIDsInContacts = array_map(fn ($contact) => $contact["user"]["id"], $usersInContacts->toArray());
+
+        $arrayedUsers = $users->toArray();
+        if (!empty($arrayedUsers)) {
+            foreach ($arrayedUsers as $index => $user) {
+                if (in_array($user["id"], $userIDsInContacts)) {
+                    array_splice($arrayedUsers, $index, 1);
+                }
+            }
+            $users = UserResource::collection(User::hydrate($arrayedUsers));
         }
+
         if (!empty($usersInContacts->toArray())) {
             $usersInContacts = ContactResource::collection($usersInContacts);
         }
 
-
         return response()->json([
             "message" => ($users || $usersInContacts) ? "Results for $keyword"
                 : "No results for $keyword",
-            "users" => $users ?? null, "contacts" => $usersInContacts ?? null
+            "users" => $users ?? [], "contacts" => $usersInContacts ?? []
         ]);
     }
 }
