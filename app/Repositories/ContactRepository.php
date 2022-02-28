@@ -14,9 +14,10 @@ class ContactRepository
 
     public static function getUsersFromAddedContacts(int $owner_id, array $saved_ids = [])
     {
-        $contacts = Contact::with("user")->where(function ($query)  use ($saved_ids, $owner_id) {
-            return $query->whereIn("saved_id", $saved_ids)->where("owner_id", $owner_id);
-        });
+        $contacts = Contact::with("user")->where("status", "!=", Contact::STATUS_BLOCKED)
+            ->where(function ($query)  use ($saved_ids, $owner_id) {
+                return $query->whereIn("saved_id", $saved_ids)->where("owner_id", $owner_id);
+            });
         return $contacts;
     }
 }
