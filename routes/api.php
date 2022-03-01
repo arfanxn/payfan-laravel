@@ -83,6 +83,7 @@ Route::prefix("user")->middleware("api")->group(function () {
 
             Route::prefix("contacts")->group(function () {
                 Route::get("top-contacts", [ContactController::class,  'topContacts']);
+                Route::get("{contact:savedContactID}/last-transaction-with", [ContactController::class, "lastTransactionWithContact"]);
             });
         });
     });
@@ -93,5 +94,4 @@ Route::get("users-and-contacts/search", [SearchPeopleController::class, "searchE
 
 
 Route::post("test", function (Request  $request) {
-    return response();
 });
