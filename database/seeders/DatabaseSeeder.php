@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Helpers\StrHelper;
+use App\Models\Contact;
 use Faker\Factory as WithFaker;
 use Illuminate\Database\Seeder;
 
@@ -34,14 +36,36 @@ class DatabaseSeeder extends Seeder
                 "security_answer" => substr(strtolower($faker_ID->sentence()), 0, 50)
             ]);
 
+            \App\Models\UserWallet::create([
+                "user_id" => $i,
+                "address" => StrHelper::make(StrHelper::random(16))->toUpperCase()->get(),
+                "balance" => rand(1000000, 999999),
+                "total_transaction" => rand(0, 100),
+                "last_transaction"  => now()->subDays(rand(1, 31))->toDateTimeString()
+            ]);
+
+            $status = rand(1, 3);
+            switch ($status) {
+                case 1:
+                    $status = Contact::STATUS_ADDED;
+                    break;
+                case 2:
+                    $status = Contact::STATUS_FAVORITED;
+                    break;
+                default:
+                    $status = Contact::STATUS_BLOCKED;
+                    break;
+            }
             \App\Models\Contact::create([
                 "owner_id" => rand(1, 5),
                 "saved_id"  => $i + 1,
-                "status" => \App\Models\Contact::STATUS_ADDED,
+                "status" => $status,
                 "total_transaction" => rand(1, 99),
                 'last_transaction' => now()->subDay(rand(1, 30))->toDateTimeString(),
                 'added_at' => now()->subDays(rand(31, 365))->toDateTimeString()
             ]);
         }
+
+        \App\Models\Transaction::factory($totalSeed)->create();
     }
 }
