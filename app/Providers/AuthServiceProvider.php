@@ -27,6 +27,6 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        Gate::define("view-contact", fn (User $user, Contact $contact) => $user->id  === $contact->owner_id);
+        Gate::define("has-contact", fn (User $user, Contact $contact) => $user->id  === $contact->owner_id); // gate explanation : is user has/adding/saving the contact (true/false)
     }
 }
