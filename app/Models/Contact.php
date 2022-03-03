@@ -18,6 +18,11 @@ class Contact extends Model
         "total_transaction", 'last_transaction', 'added_at'
     ];
 
+    public function getRouteKey()
+    {
+        return "id";
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, "saved_id", "id");
