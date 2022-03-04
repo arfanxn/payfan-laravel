@@ -63,7 +63,7 @@ class ContactController extends Controller
         }
     }
 
-    public function AddOrRemove(User $user)
+    public function addOrRemove(User $user)
     {
         $contactQuery = Contact::query()->where("owner_id", Auth::id())->where("saved_id", $user->id);
         $isAlreadyAdded = $contactQuery->exists();
