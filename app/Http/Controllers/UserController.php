@@ -17,7 +17,7 @@ class UserController extends Controller
 {
     public function self()
     {
-        return (new UserResource(User::with("settings")->where("id", Auth::id())->first()))
+        return (new UserResource(User::with(["settings", 'wallet'])->where("id", Auth::id())->first()))
             ->toResponse(request())->setStatusCode(200);
     }
 
