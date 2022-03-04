@@ -22,7 +22,6 @@ class UserResource extends JsonResource
             "email" => $this->email,
             "email_verified_at" => $this->email_verified_at,
             "profile_pict" => URLHelper::userProfilePict(isset($this->profile_pict) && $this->profile_pict  ? $this->profile_pict : null),
-            "is_added_by_self" => $this->whenLoaded("isAddedBySelf", new UserResource($this->is_added_by_self)),
             "created_at" => $this->created_at,
             "updated_at" => $this->updated_at,
             "settings" => $this->whenLoaded("settings", fn () => $this->settings)
