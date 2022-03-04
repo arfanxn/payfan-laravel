@@ -21,7 +21,7 @@ class SearchPeopleController extends Controller
         if ($validator->fails())  return response()->json($validator->errors()->messages(), 422);
         $keyword = $validator->validated()["keyword"];
 
-        $users = User::with(["isAddedBySelf"])->where("id", "!=", Auth::id())->where(function ($query) use ($keyword) {
+        $users = User::query()->where("id", "!=", Auth::id())->where(function ($query) use ($keyword) {
             return $query->where("name", "LIKE", "%$keyword%")->orWhere("email", "LIKE", "%$keyword%");
         })->orderBy("created_at", "desc")->get();
 
@@ -29,16 +29,8 @@ class SearchPeopleController extends Controller
         $usersInContacts = ContactRepository::usersFromAddedContacts(Auth::id(), $user_ids)
             ->orderBy('added_at', "desc")->get();
 
-        $userIDsInContacts = array_map(fn ($contact) => $contact["user"]["id"], $usersInContacts->toArray());
-
-        $arrayedUsers = $users->toArray();
-        if (!empty($arrayedUsers)) {
-            foreach ($arrayedUsers as $index => $user) {
-                if (in_array($user["id"], $userIDsInContacts)) {
-                    array_splice($arrayedUsers, $index, 1);
-                }
-            }
-            $users = UserResource::collection(User::hydrate($arrayedUsers));
+        if (!empty($users->toArray())) {
+            $users = UserResource::collection($users);
         }
 
         if (!empty($usersInContacts->toArray())) {
@@ -48,7 +40,7 @@ class SearchPeopleController extends Controller
         return response()->json([
             "message" => ($users || $usersInContacts) ? "Results for $keyword"
                 : "No results for $keyword",
-            "users" => $users ?? [], "contacts" => $usersInContacts ?? []
+            "users" => $users ?? [], "contacts" => $usersInContacts ?? [],
         ]);
     }
 }
