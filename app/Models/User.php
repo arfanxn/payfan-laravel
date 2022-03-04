@@ -96,10 +96,4 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         return $this->hasMany(Contact::class, "owner_id");
     }
-
-    public function isAddedBySelf($owner_id = null)
-    {
-        $owner_id = Auth::id();
-        return $this->hasOne(Contact::class, "saved_id")->where("owner_id", $owner_id);
-    }
 }
