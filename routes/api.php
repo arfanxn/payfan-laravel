@@ -83,8 +83,14 @@ Route::prefix("user")->middleware("api")->group(function () {
 
             Route::prefix("contacts")->group(function () {
                 Route::get("top-contacts", [ContactController::class,  'topContacts']);
-                Route::get("{contact:savedContactID}/last-transaction-with", [ContactController::class, "lastTransactionWithContact"]);
             });
+            Route::prefix("contact")->group(function () {
+                Route::get("{contact}/last-transaction", [ContactController::class, "lastTransactionDetail"]);
+                Route::get("{contact}/toggle-favorite", [ContactController::class, "toggleFavorite"]);
+                Route::post("/add-or-rm/user/{user}", [ContactController::class, "addOrRemove"]);
+                Route::post("/{contact}/block", [ContactController::class, "block"]);
+            });
+            //
         });
     });
 });
