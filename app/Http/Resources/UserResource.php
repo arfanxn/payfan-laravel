@@ -24,7 +24,8 @@ class UserResource extends JsonResource
             "profile_pict" => URLHelper::userProfilePict(isset($this->profile_pict) && $this->profile_pict  ? $this->profile_pict : null),
             "created_at" => $this->created_at,
             "updated_at" => $this->updated_at,
-            "settings" => $this->whenLoaded("settings", fn () => $this->settings)
+            "settings" => $this->whenLoaded("settings", fn () => $this->settings),
+            "wallet" => $this->whenLoaded("wallet", fn () => $this->wallet),
         ];
     }
 }
