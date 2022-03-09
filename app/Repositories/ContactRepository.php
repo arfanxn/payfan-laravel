@@ -9,7 +9,9 @@ class ContactRepository
     public static function getTopContacts(int $owner_id)
     {
         $maxGetLimit = 50;
-        $favoritedContact = Contact::with("user")->where("owner_id", $owner_id)
+        $favoritedContact = Contact::with([
+            "user", "user.wallet" => fn ($q) => $q->select(['user_id', 'address'])
+        ])->where("owner_id", $owner_id)
             ->where("status", Contact::STATUS_FAVORITED)->orderBy("last_transaction", 'desc')->limit($maxGetLimit)->get();
 
         $arrayedFavoritedContact = $favoritedContact->toArray();
@@ -23,9 +25,9 @@ class ContactRepository
         return $favoritedContact->merge($addedContact);
     }
 
-    public static function usersFromAddedContacts(int $owner_id, array $saved_ids = [])
+    public static function where_OwnID_andWhereIn_SavedID(int $owner_id, array $saved_ids = [])
     {
-        $contacts = Contact::with("user")->where("status", "!=", Contact::STATUS_BLOCKED)
+        $contacts = Contact::query()->where("status", "!=", Contact::STATUS_BLOCKED)
             ->where(function ($query)  use ($saved_ids, $owner_id) {
                 return $query->whereIn("saved_id", $saved_ids)->where("owner_id", $owner_id);
             });
