@@ -18,8 +18,8 @@ class CreateUserWalletsTable extends Migration
             $table->foreignId("user_id")->constrained("users", "id")
                 ->onDelete("cascade")->onUpdate("cascade");
             $table->string("address", 16);
-            $table->unsignedBigInteger("balance")->default(0);
-            $table->unsignedBigInteger("total_transaction")->default(0);
+            $table->unsignedDecimal("balance", 20, 2)->default(0);
+            $table->unsignedInteger("total_transaction")->default(0);
             $table->timestamp("last_transaction")->nullable();
         });
     }

@@ -23,8 +23,8 @@ class CreateTransactionsTable extends Migration
             $table->string("status");
             $table->string("type");
             $table->string("note", 1000)->nullable();
-            $table->unsignedBigInteger("amount");
-            $table->integer("charge")->default(0);
+            $table->unsignedDecimal("amount", 11, 2);
+            $table->unsignedInteger("charge")->default(0);
             $table->timestamp("started_at")->default(now()->toDateTimeString());
             $table->timestamp("completed_at")->nullable()->default(null);;
         });

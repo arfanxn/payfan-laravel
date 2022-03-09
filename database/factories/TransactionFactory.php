@@ -22,7 +22,7 @@ class TransactionFactory extends Factory
             "from_wallet" => rand(1, 10), "to_wallet" => rand(11, 20),
             "status" => Transaction::STATUS_COMPLETED,
             "type" => rand(0, 1) ? Transaction::TYPE_SEND_MONEY : Transaction::TYPE_REQUEST_MONEY, "note" => $this->faker->sentence(),
-            "amount" => rand(1000000, 9999999),
+            "amount" => floatval(100000000 .  "." . rand(1, 99)),
             "charge" => rand(0, 5000),
             "started_at" =>   $started_at->toDateTimeString(),
             "completed_at" => $completed_at->toDateTimeString(),
