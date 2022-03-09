@@ -13,6 +13,8 @@ class Transaction extends Model
 
     public const STATUS_COMPLETED = "COMPLETED";
 
+    public const MINIMUM_AMOUNT = "0.10", MAXIMUM_AMOUNT = "100000000.00";
+
     public const TYPE_REQUEST_MONEY =  "REQUEST", TYPE_SEND_MONEY = "SEND", TYPE_REWARD = "REWARD";
 
     protected $fillable = [
