@@ -15,7 +15,7 @@ class NotificationController extends Controller
      */
     public function index()
     {
-        $notifications = User::with(["latestNotifications"])->find(Auth::id())->first()->notifications;
+            $notifications = User::with(["notifications"])->find(Auth::id())->first()->notifications;
         return response()->json(['notifications' => $notifications]);
     }
 
