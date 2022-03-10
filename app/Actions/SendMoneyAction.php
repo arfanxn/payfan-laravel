@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class SendMoneyAction extends TransactionActionAbstract
 {
-    public function create()
+    public function exec()
     {
         try {
             DB::beginTransaction();
