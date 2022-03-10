@@ -99,8 +99,8 @@ Route::prefix("user")->middleware("api")->group(function () {
             Route::prefix("transaction")->group(function () {
                 Route::get("{transaction:tx_hash}", [TransactionController::class, "show"]);
                 Route::post("/send-money", SendMoneyController::class)->middleware("verification_code.verify");
-                Route::post("/request-money/make", [RequestMoneyController::class, "makeRequest"]);
-                Route::patch("{transaction:tx_hash}/request-money/approve", [RequestMoneyController::class, "aprroveRequest"])->middleware("verification_code.verify");
+                Route::post("/request-money/make", [RequestMoneyController::class, "make"]);
+                Route::patch("/request-money/{transaction:tx_hash}/approve", [RequestMoneyController::class, "approve"])->middleware("verification_code.verify");
             });
 
             Route::prefix("notifications")->group(function () {
