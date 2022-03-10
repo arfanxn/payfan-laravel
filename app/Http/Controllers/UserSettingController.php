@@ -61,11 +61,11 @@ class UserSettingController extends Controller
         //     $userSetting->payment_notification =  boolval($request->payment_notification) ? 1 : 0;
         if ($request->has("request_notification")) {
             $userSetting->request_notification = boolval($request->request_notification) ? 1 : 0;
-            array_merge($messages, ["request_notification" => "Request notification updated successfully"]);
+            $messages["request_notification"] = "Request notification updated successfully";
         }
         if ($request->has("receive_notification")) {
             $userSetting->receive_notification = boolval($request->receive_notification) ? 1 : 0;
-            array_merge($messages, ["receive_notification" => "Receive notification updated successfully"]);
+            $messages["receive_notification"] = "Receive notification updated successfully";
         }
 
         $updateNotificationSettings = $userSetting->save();
