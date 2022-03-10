@@ -4,10 +4,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\RequestMoneyController;
 use App\Http\Controllers\SearchPeopleController;
+use App\Http\Controllers\SendMoneyController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserSettingController;
 use App\Http\Controllers\ValidatorController;
+use App\Models\Transaction;
 
 /*
 |--------------------------------------------------------------------------
@@ -90,7 +95,17 @@ Route::prefix("user")->middleware("api")->group(function () {
                 Route::post("/add-or-rm/user/{user}", [ContactController::class, "addOrRemove"]);
                 Route::post("/{contact}/block", [ContactController::class, "block"]);
             });
-            //
+
+            Route::prefix("transaction")->group(function () {
+                Route::get("{transaction:tx_hash}", [TransactionController::class, "show"]);
+                Route::post("/send-money", SendMoneyController::class)->middleware("verification_code.verify");
+                Route::post("/request-money/make", [RequestMoneyController::class, "makeRequest"]);
+                Route::patch("{transaction:tx_hash}/request-money/approve", [RequestMoneyController::class, "aprroveRequest"])->middleware("verification_code.verify");
+            });
+
+            Route::prefix("notifications")->group(function () {
+                Route::get("", [NotificationController::class, "index"]);
+            });
         });
     });
 });
