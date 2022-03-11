@@ -35,5 +35,7 @@ class AuthServiceProvider extends ServiceProvider
             fn (User $user, Transaction $transaction) =>
             $user->id === $transaction->from_wallet || $user->id === $transaction->to_wallet
         );
+
+        Gate::define("has-notification", fn (User $user, $notification) => $user->id === $notification->notifiable_id); // check if user has the notification  
     }
 }
