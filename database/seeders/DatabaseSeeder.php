@@ -6,6 +6,7 @@ use App\Helpers\StrHelper;
 use App\Models\Contact;
 use Faker\Factory as WithFaker;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -25,25 +26,13 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $totalSeed = 2000;
-        \App\Models\User::factory($totalSeed)->create();
-        \App\Models\Notification::factory($totalSeed)->create();
+
+        \App\Models\User::factory()->count($totalSeed)->create()->each(function (\App\Models\User $user) use ($faker_ID,) {
+            \App\Models\UserSetting::factory()->count(1)->create(['user_id' => 1]);
+            \App\Models\UserWallet::factory()->count(1)->create(['user_id' => 1,]);
+        });
 
         for ($i = 1; $i <= $totalSeed; $i++) {
-            \App\Models\UserSetting::create([
-                "user_id" => $i,
-                "two_factor_auth" => rand(0, 1),
-                "security_question" => substr(strtolower($faker_ID->sentence()), 0, 50),
-                "security_answer" => substr(strtolower($faker_ID->sentence()), 0, 50)
-            ]);
-
-            \App\Models\UserWallet::create([
-                "user_id" => $i,
-                "address" => StrHelper::make(StrHelper::random(16))->toUpperCase()->get(),
-                "balance" => rand(1000000, 999999),
-                "total_transaction" => rand(0, 100),
-                "last_transaction"  => now()->subDays(rand(1, 31))->toDateTimeString()
-            ]);
-
             $status = rand(1, 3);
             switch ($status) {
                 case 1:
@@ -64,8 +53,20 @@ class DatabaseSeeder extends Seeder
                 'last_transaction' => now()->subDay(rand(1, 30))->toDateTimeString(),
                 'added_at' => now()->subDays(rand(31, 365))->toDateTimeString()
             ]);
+
+            DB::table("notifications")->insert([
+                "id" => $faker_ID->uuid(),
+                "type" => \App\Notifications\SendMoneyNotification::class,
+                "notifiable_type" => \App\Models\User::class,
+                "notifiable_id" => 1,
+                "data" => json_encode([
+                    "text" => $faker_ID->sentence(),
+                ]),
+            ]);
         }
 
         \App\Models\Transaction::factory($totalSeed)->create();
+
+        $this->call(NotificationSeeder::class, false, ['total' => $totalSeed]);
     }
 }
