@@ -17,7 +17,7 @@ class NotificationSeeder extends Seeder
     {
         $faker_ID = WithFaker::create("id_ID");
 
-        for ($i = 0; $i < $total; $i++) {
+        for ($i = 1; $i <= $total; $i++) {
             DB::table("notifications")->insert([
                 "id" => $faker_ID->uuid(),
                 "type" => \App\Notifications\SendMoneyNotification::class,
