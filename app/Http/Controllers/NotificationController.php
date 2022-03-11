@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Repositories\NotificationRepository;
 
 class NotificationController extends Controller
 {
@@ -15,8 +16,10 @@ class NotificationController extends Controller
      */
     public function index()
     {
-            $notifications = User::with(["notifications"])->find(Auth::id())->first()->notifications;
-        return response()->json(['notifications' => $notifications]);
+        // $notifications =  NotificationRepository::make()->whereNotifiable(Auth::user())->getBuilder()
+        //     ->orderBy("created_at", "DESC");     
+        $notifications = User::with(["notifications"])->find(Auth::id())->first()->notifications()->simplePaginate(20);
+        return response()->json(["notifications" => $notifications]);
     }
 
     /**
