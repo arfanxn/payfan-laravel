@@ -20,7 +20,7 @@ class TransactionFactory extends Factory
         return [
             "tx_hash" =>  StrHelper::make(StrHelper::random())->toUpperCase()->result(),
             "from_wallet" => rand(1, 10), "to_wallet" => rand(11, 20),
-            "status" => Transaction::STATUS_COMPLETED,
+            "status" => rand(0, 1) ?  Transaction::STATUS_PENDING : Transaction::STATUS_COMPLETED,
             "type" => rand(0, 1) ? Transaction::TYPE_SEND_MONEY : Transaction::TYPE_REQUEST_MONEY, "note" => $this->faker->sentence(),
             "amount" => floatval(100000000 .  "." . rand(1, 99)),
             "charge" => rand(0, 5000),
