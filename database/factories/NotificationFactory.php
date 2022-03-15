@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use Faker\Factory as WithFaker;
 use App\Models\Notification;
 use App\Models\User;
 use App\Notifications\SendMoneyNotification;
@@ -16,14 +17,25 @@ class NotificationFactory extends Factory
      */
     public function definition()
     {
+        return self::template();
+    }
+
+    public static function template(): array
+    {
+        $faker_ID = WithFaker::create("id_ID");
+
         return [
-            "id" => $this->withFaker()->uuid(),
-            "type" => SendMoneyNotification::class,
-            "notifiable_type" => User::class,
-            "notifiable_id" => rand(1, 5),
+            "id" => $faker_ID->uuid(),
+            "type" => \App\Notifications\SendMoneyNotification::class,
+            "notifiable_type" => \App\Models\User::class,
+            "notifiable_id" => 1,
             "data" => json_encode([
-                "note" => $this->withFaker()->sentence()
+                "text" => $faker_ID->sentences(rand(1, 3), true),
+                "action" => rand(0, 1) ? "Transaction Details" : null,
+                "link" => $faker_ID->url(),
             ]),
+            "read_at" =>  rand(0, 1) ? now()->toDateTimeString() : null,
+            "created_at" =>  now()->toDateTimeString(),
         ];
     }
 }
