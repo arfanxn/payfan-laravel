@@ -26,7 +26,7 @@ class CreateTransactionsTable extends Migration
             $table->unsignedDecimal("amount", 11, 2);
             $table->unsignedInteger("charge")->default(0);
             $table->timestamp("started_at")->default(now()->toDateTimeString());
-            $table->timestamp("completed_at")->nullable()->default(null);;
+            $table->timestamp("completed_at")->nullable()->default(null);
         });
     }
 
