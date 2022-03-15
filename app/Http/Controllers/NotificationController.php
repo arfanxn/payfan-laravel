@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Repositories\NotificationRepository;
+use Illuminate\Support\Facades\Gate;
 
 class NotificationController extends Controller
 {
@@ -16,20 +17,11 @@ class NotificationController extends Controller
      */
     public function index()
     {
-        // $notifications =  NotificationRepository::make()->whereNotifiable(Auth::user())->getBuilder()
-        //     ->orderBy("created_at", "DESC");     
+        $totalUnreadNotifications = NotificationRepository::make()->where_Notifiable(Auth::user())->where_Unread()->getBuilder()->count();
         $notifications = User::with(["notifications"])->find(Auth::id())->first()->notifications()->simplePaginate(20);
-        return response()->json(["notifications" => $notifications]);
-    }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        $notifications = collect(['total_unread' => $totalUnreadNotifications])->merge($notifications);
+        return response()->json(["notifications" => $notifications]);
     }
 
     /**
@@ -44,47 +36,70 @@ class NotificationController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     *  return the notification by id and mark the returned notification as readed
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
-        //
+        $notificationQuery = NotificationRepository::find($id);
+        $notification = $notificationQuery->getBuilder()->first();
+        if (Gate::denies("has-notification", $notification))
+            return response("Forbidden", 403);
+        $notificationQuery->markAsRead();
+
+        return response()->json(["notification" => $notification]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Mark notification as read.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function markAsRead($id)
     {
-        //
+        $notificationQuery = NotificationRepository::find($id);
+        $notification = $notificationQuery->getBuilder()->first();
+        if (Gate::denies("has-notification", $notification))
+            return response("Forbidden", 403);
+        $notificationQuery->markAsRead();
+
+        return response()->json(["message" => "notification marked as read."]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
 
     /**
-     * Remove the specified resource from storage.
+     * Mark notification as unread.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function markAsUnread($id)
     {
-        //
+        $notificationQuery = NotificationRepository::find($id);
+        $notification = $notificationQuery->getBuilder()->first();
+        if (Gate::denies("has-notification", $notification))
+            return response("Forbidden", 403);
+        $notificationQuery->markAsUnread();
+
+        return response()->json(["message" => "notification marked as unread."]);
+    }
+
+    /**
+     * Remove the readed notifications .
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function deletedReaded()
+    {
+        $deleteReadedNotifications =  NotificationRepository::make()->where_Notifiable(Auth::user())->where_Unread()
+            ->getBuilder()->delete();
+
+        return $deleteReadedNotifications ?
+            response()->json(['message' => "readed notifications deleted successfully."])
+            : response()->json(['error_message' => "Could not delete."]);
     }
 }
