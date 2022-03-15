@@ -11,7 +11,7 @@ class Transaction extends Model
 
     public const CREATED_AT = null, UPDATED_AT = null;
 
-    public const STATUS_COMPLETED = "COMPLETED", STATUS_PENDING =  "PENDING";
+    public const STATUS_COMPLETED = "COMPLETED", STATUS_PENDING =  "PENDING", STATUS_FAILED = "FAILED";
 
     public const MINIMUM_AMOUNT = "0.10", MAXIMUM_AMOUNT = "100000000.00";
 
