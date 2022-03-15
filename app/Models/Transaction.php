@@ -11,7 +11,7 @@ class Transaction extends Model
 
     public const CREATED_AT = null, UPDATED_AT = null;
 
-    public const STATUS_COMPLETED = "COMPLETED", STATUS_PENDING =  "PENDING", STATUS_FAILED = "FAILED";
+    public const STATUS_COMPLETED = "COMPLETED", STATUS_PENDING =  "PENDING", STATUS_REJECTED = "REJECTED",   STATUS_FAILED = "FAILED";
 
     public const MINIMUM_AMOUNT = "0.10", MAXIMUM_AMOUNT = "100000000.00";
 
@@ -21,4 +21,14 @@ class Transaction extends Model
         "tx_hash", "from_wallet", "to_wallet", "status", "type", "note",
         "amount", "charge", "started_at", "completed_at"
     ];
+
+    public function toWallet()
+    {
+        return $this->belongsTo(UserWallet::class, "to_wallet", 'id');
+    }
+
+    public function fromWallet()
+    {
+        return $this->belongsTo(UserWallet::class, "from_wallet", 'id');
+    }
 }
