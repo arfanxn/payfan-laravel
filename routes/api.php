@@ -95,6 +95,7 @@ Route::prefix("user")->middleware("api")->group(function () {
                 Route::post("/{contact}/block", [ContactController::class, "block"]);
             });
 
+            Route::get("transactions", [TransactionController::class, "index"]);
             Route::prefix("transaction")->group(function () {
                 Route::get("{transaction:tx_hash}", [TransactionController::class, "show"]);
                 Route::post("/send-money", SendMoneyController::class)->middleware("verification_code.verify");

@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\TransactionCollection;
 use App\Models\Transaction;
+use App\Repositories\TransactionRepository;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class TransactionController extends Controller
 {
@@ -13,9 +17,32 @@ class TransactionController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            "keyword" => "nullable|string",
+            "start_at" => "nullable|date|before:end_at",
+            "end_at" => "nullable|date|after:start_at",
+            "status" => "nullable|string",
+            "type" => "nullable|string",
+        ]);
+        $validatorValidated = $validator->validated();
+
+        $authWallet = Auth::user()->wallet;
+        $transactionQuery = Transaction::with(['fromWallet.user', "toWallet.user",])->where(fn ($q)
+        => $q->where("from_wallet", $authWallet->id)->orWhere('to_wallet', $authWallet->id));
+
+        $transactions = TransactionRepository::filters([
+            "keyword" => $validatorValidated['keyword'] ?? null,
+            "start_at" => $validatorValidated['start_at'] ?? null,
+            "end_at" => $validatorValidated['end_at'] ?? null,
+            "status" => $validatorValidated['status'] ?? null,
+            "type" => $validatorValidated['type'] ?? null,
+        ], $transactionQuery)->simplePaginate(10);
+
+        $transactions =  new TransactionCollection($transactions);
+
+        return  response()->json(['transactions' => $transactions]);
     }
 
     /**
@@ -47,7 +74,7 @@ class TransactionController extends Controller
      */
     public function show(Transaction $transaction)
     {
-        if (Gate::denies("has-relation-transaction", $transaction)) return response("Forbidden", 403);
+        if (Gate::denies("has-transaction", $transaction)) return response("Forbidden", 403);
         return response()->json(["transaction" => $transaction]);
     }
 
