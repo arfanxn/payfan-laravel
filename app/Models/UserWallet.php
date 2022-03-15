@@ -14,4 +14,9 @@ class UserWallet extends Model
     protected  $fillable =  [
         "user_id", "address", "balance", "total_transaction", "last_transaction"
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, "user_id", "id");
+    }
 }
