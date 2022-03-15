@@ -105,6 +105,7 @@ Route::prefix("user")->middleware("api")->group(function () {
 
             Route::prefix("notifications")->group(function () { // pluralize
                 Route::get("", [NotificationController::class, "index"]);
+                Route::delete("readed", [NotificationController::class, "deleteReaded"]);;
             });
             Route::prefix("notification")->group(function () { // singularize
                 Route::get("{id}", [NotificationController::class, "show"]);
