@@ -93,7 +93,7 @@ class NotificationController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function deletedReaded()
+    public function deleteReaded()
     {
         $deleteReadedNotifications =  NotificationRepository::make()->where_Notifiable(Auth::user())->where_Unread()
             ->getBuilder()->delete();

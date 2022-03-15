@@ -12,7 +12,6 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserSettingController;
 use App\Http\Controllers\ValidatorController;
-use App\Models\Transaction;
 
 /*
 |--------------------------------------------------------------------------
@@ -83,7 +82,7 @@ Route::prefix("user")->middleware("api")->group(function () {
             Route::prefix("settings")->middleware("verification_code.verify")->group(function () {
                 Route::patch("/2fa", [UserSettingController::class, "disableOrEnable2FA"]);
                 Route::patch("security-question", [UserSettingController::class, "updateSecurityQuestion"]);
-                Route::patch("notifications", [UserSettingController::class, "updateNotificationSettings"]);
+                Route::patch("notifications", [UserSettingController::class, "updateNotificationSettings"])->withoutMiddleware(["verification_code.verify"]);
             });
 
             Route::prefix("contacts")->group(function () {
@@ -103,8 +102,14 @@ Route::prefix("user")->middleware("api")->group(function () {
                 Route::patch("/request-money/{transaction:tx_hash}/approve", [RequestMoneyController::class, "approve"])->middleware("verification_code.verify");
             });
 
-            Route::prefix("notifications")->group(function () {
+
+            Route::prefix("notifications")->group(function () { // pluralize
                 Route::get("", [NotificationController::class, "index"]);
+            });
+            Route::prefix("notification")->group(function () { // singularize
+                Route::get("{id}", [NotificationController::class, "show"]);
+                Route::post("{id}/mark-as-read", [NotificationController::class, "markAsRead"]);
+                Route::post("{id}/mark-as-unread", [NotificationController::class, "markAsUnread"]);
             });
         });
     });
