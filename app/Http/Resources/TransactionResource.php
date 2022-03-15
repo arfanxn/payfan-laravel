@@ -16,8 +16,8 @@ class TransactionResource extends JsonResource
     {
         return [
             "tx_hash" => $this->tx_hash,
-            "from_wallet" => $this->whenLoaded("fromWallet", new WalletResource($this->from_wallet)),
-            "to_wallet" => $this->whenLoaded("toWallet", new WalletResource($this->to_wallet)),
+            "from_wallet" => $this->whenLoaded("fromWallet", new WalletResource($this->fromWallet)),
+            "to_wallet" => $this->whenLoaded("toWallet", new WalletResource($this->toWallet)),
             "status" => $this->status,
             "type" => $this->type,
             "note" => $this->note,
