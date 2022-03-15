@@ -24,12 +24,14 @@ class DatabaseSeeder extends Seeder
             "email_verified_at" => now()->toDateTimeString(),
             "password" => bcrypt("11112222")
         ]);
+        \App\Models\UserSetting::factory()->count(1)->create(['user_id' => 1]);
+        \App\Models\UserWallet::factory()->count(1)->create(['user_id' => 1]);
 
         $totalSeed = 2000;
 
         \App\Models\User::factory()->count($totalSeed)->create()->each(function (\App\Models\User $user) use ($faker_ID,) {
-            \App\Models\UserSetting::factory()->count(1)->create(['user_id' => 1]);
-            \App\Models\UserWallet::factory()->count(1)->create(['user_id' => 1,]);
+            \App\Models\UserSetting::factory()->count(1)->create(['user_id' => $user->id]);
+            \App\Models\UserWallet::factory()->count(1)->create(['user_id' => $user->id,]);
         });
 
         for ($i = 1; $i <= $totalSeed; $i++) {
@@ -52,16 +54,6 @@ class DatabaseSeeder extends Seeder
                 "total_transaction" => rand(1, 99),
                 'last_transaction' => now()->subDay(rand(1, 30))->toDateTimeString(),
                 'added_at' => now()->subDays(rand(31, 365))->toDateTimeString()
-            ]);
-
-            DB::table("notifications")->insert([
-                "id" => $faker_ID->uuid(),
-                "type" => \App\Notifications\SendMoneyNotification::class,
-                "notifiable_type" => \App\Models\User::class,
-                "notifiable_id" => 1,
-                "data" => json_encode([
-                    "text" => $faker_ID->sentence(),
-                ]),
             ]);
         }
 
