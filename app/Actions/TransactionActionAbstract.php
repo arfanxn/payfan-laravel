@@ -2,7 +2,7 @@
 
 namespace App\Actions;
 
-use App\Models\UserWallet;
+use App\Models\Wallet;
 use Illuminate\Support\Facades\Auth;
 
 abstract class TransactionActionAbstract
@@ -27,18 +27,18 @@ abstract class TransactionActionAbstract
         return $this;
     }
 
-    public function setFromWallet(UserWallet|string|null $fromWallet = null) //wallet object or address
+    public function setFromWallet(Wallet|string|null $fromWallet = null) //wallet object or address
     {
         if (is_null($fromWallet)) $this->fromWallet = Auth::user()->wallet->address;
-        elseif ($fromWallet instanceof UserWallet) $this->fromWallet = $fromWallet->address;
+        elseif ($fromWallet instanceof Wallet) $this->fromWallet = $fromWallet->address;
         elseif ($fromWallet) $this->fromWallet = $fromWallet;
 
         return $this;
     }
 
-    public function setToWallet(UserWallet|string $toWallet) //wallet object or address
+    public function setToWallet(Wallet|string $toWallet) //wallet object or address
     {
-        if ($toWallet instanceof UserWallet) $this->toWallet = $toWallet->address;
+        if ($toWallet instanceof Wallet) $this->toWallet = $toWallet->address;
         elseif (is_string($toWallet)) $this->toWallet = $toWallet;
 
         return $this;

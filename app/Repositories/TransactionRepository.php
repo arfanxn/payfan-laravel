@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use App\Models\Contact;
 use App\Models\Transaction;
 use App\Models\User;
-use App\Models\UserWallet;
+use App\Models\Wallet;
 
 class TransactionRepository
 {
@@ -63,7 +63,7 @@ class TransactionRepository
         return $transactionQuery;
     }
 
-    public static function lastTransactionWith(UserWallet $wallet1,  UserWallet $wallet2)
+    public static function lastTransactionWith(Wallet $wallet1,  Wallet $wallet2)
     {
         $lastTransaction = Transaction::query()->where(
             fn ($query) => $query->where("from_wallet", $wallet1->id)->orWhere("from_wallet", $wallet2->id)

@@ -16,9 +16,9 @@ class CreateTransactionsTable extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->string("tx_hash", 50);
-            $table->foreignId("from_wallet")->nullable()->constrained("user_wallets", "id")
+            $table->foreignId("from_wallet")->nullable()->constrained("wallets", "id")
                 ->onUpdate("cascade");
-            $table->foreignId("to_wallet")->constrained("user_wallets", "id")
+            $table->foreignId("to_wallet")->constrained("wallets", "id")
                 ->onUpdate("cascade");
             $table->string("status");
             $table->string("type");

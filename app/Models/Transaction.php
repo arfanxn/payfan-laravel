@@ -24,11 +24,11 @@ class Transaction extends Model
 
     public function toWallet()
     {
-        return $this->belongsTo(UserWallet::class, "to_wallet", 'id');
+        return $this->belongsTo(Wallet::class, "to_wallet", 'id');
     }
 
     public function fromWallet()
     {
-        return $this->belongsTo(UserWallet::class, "from_wallet", 'id');
+        return $this->belongsTo(Wallet::class, "from_wallet", 'id');
     }
 }

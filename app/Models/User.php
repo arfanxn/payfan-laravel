@@ -84,7 +84,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 
     public function wallet()
     {
-        return $this->hasOne(UserWallet::class, "user_id");
+        return $this->hasOne(Wallet::class, "user_id");
     }
 
 

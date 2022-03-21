@@ -4,7 +4,7 @@ namespace App\Actions;
 
 use App\Helpers\StrHelper;
 use App\Models\Transaction;
-use App\Models\UserWallet;
+use App\Models\Wallet;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
@@ -30,7 +30,7 @@ class SendMoneyAction extends TransactionActionAbstract
             if ($amount < floatval(Transaction::MINIMUM_AMOUNT)) throw new Exception("Minimum Transaction is $0.10");
             // end
 
-            $fromWalletData = UserWallet::where("address", $fromWallet)
+            $fromWalletData = Wallet::where("address", $fromWallet)
                 ->where("balance", ">=", ($amountAndCharge))->first();
 
             // check is fromWallet valid/exist and balance enough for doing this transfer process
@@ -41,7 +41,7 @@ class SendMoneyAction extends TransactionActionAbstract
             } else throw new Exception("Wallet balance is not enough!");
             // end
 
-            $toWalletData = UserWallet::where("address", $toWallet)->first();
+            $toWalletData = Wallet::where("address", $toWallet)->first();
 
             // check is toWallet exist and valid
             // if valid and also exist , add the amount to toWallet balance 
@@ -52,9 +52,10 @@ class SendMoneyAction extends TransactionActionAbstract
             // end 
 
 
-            // make the transaction history / transaction invoice 
+            // make the transaction invoice 
             // tx_hash is the transaction uniq_id
-            $tx_hash = strtoupper(StrHelper::random(10)) . preg_replace("/[^0-9]+/",  "", now()->toDateTimeString());
+            $tx_hash = strtoupper(StrHelper::random(10)) . preg_replace("/[^0-9]+/",  "", now()
+                ->toDateTimeString());
             $txCreate = [
                 "tx_hash" => $tx_hash,
                 "from_wallet" => $fromWalletData->id,

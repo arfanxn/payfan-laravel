@@ -5,7 +5,7 @@ namespace Database\Factories;
 use App\Helpers\StrHelper;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class UserWalletFactory extends Factory
+class WalletFactory extends Factory
 {
     /**
      * Define the model's default state.

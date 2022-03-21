@@ -25,13 +25,13 @@ class DatabaseSeeder extends Seeder
             "password" => bcrypt("11112222")
         ]);
         \App\Models\UserSetting::factory()->count(1)->create(['user_id' => 1]);
-        \App\Models\UserWallet::factory()->count(1)->create(['user_id' => 1]);
+        \App\Models\Wallet::factory()->count(1)->create(['user_id' => 1]);
 
-        $totalSeed = 2000;
+        $totalSeed = 5000;
 
         \App\Models\User::factory()->count($totalSeed)->create()->each(function (\App\Models\User $user) use ($faker_ID,) {
             \App\Models\UserSetting::factory()->count(1)->create(['user_id' => $user->id]);
-            \App\Models\UserWallet::factory()->count(1)->create(['user_id' => $user->id,]);
+            \App\Models\Wallet::factory()->count(1)->create(['user_id' => $user->id,]);
         });
 
         for ($i = 1; $i <= $totalSeed; $i++) {

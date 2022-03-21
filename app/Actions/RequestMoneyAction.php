@@ -4,7 +4,7 @@ namespace App\Actions;
 
 use App\Helpers\StrHelper;
 use App\Models\Transaction;
-use App\Models\UserWallet;
+use App\Models\Wallet;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
@@ -28,9 +28,9 @@ class RequestMoneyAction extends TransactionActionAbstract
             if ($amount < floatval(Transaction::MINIMUM_AMOUNT)) throw new Exception("Minimum Transaction is $0.10");
             // end
 
-            $fromWalletData = UserWallet::where("address", $fromWallet)->first();
+            $fromWalletData = Wallet::where("address", $fromWallet)->first();
 
-            $toWalletData = UserWallet::where("address", $toWallet)->first();
+            $toWalletData = Wallet::where("address", $toWallet)->first();
 
             // make the transaction history / transaction invoice 
             // tx_hash is the transaction uniq_id
@@ -67,7 +67,7 @@ class RequestMoneyAction extends TransactionActionAbstract
             $toWallet = $transaction->toWallet;
             $fromWallet = $transaction->fromWallet;
 
-            $fromWalletData = UserWallet::where("address", $fromWallet)
+            $fromWalletData = Wallet::where("address", $fromWallet)
                 ->where("balance", ">=", ($amountAndCharge))->first();
 
             // check is fromWallet exist and valid
@@ -78,7 +78,7 @@ class RequestMoneyAction extends TransactionActionAbstract
             } else throw new Exception("Wallet address not found or Invalid!");
             // end
 
-            $toWalletData = UserWallet::where("address", $toWallet)->first();
+            $toWalletData = Wallet::where("address", $toWallet)->first();
 
             // check is toWallet valid/exist and balance enough for doing this transfer process
             // if exist -> subtract the toWallet balance
