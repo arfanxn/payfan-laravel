@@ -2,7 +2,9 @@
 
 namespace App\Actions;
 
+use App\Exceptions\TransactionException;
 use App\Helpers\StrHelper;
+use App\Models\Order;
 use App\Models\Transaction;
 use App\Models\Wallet;
 use Exception;
@@ -22,12 +24,15 @@ class SendMoneyAction extends TransactionActionAbstract
             $fromWallet = $this->fromWallet;
 
             // if the user send to the same wallet, let say wallet-id-1 send to wallet-id-1 ,throw an error.
-            if ($fromWallet ==  $toWallet)
-                throw new Exception("Can't sent to the same Wallet!");
+            if ($fromWallet ==  $toWallet) {
+                throw new TransactionException("Can't sent to the same Wallet!");
+            }
             // end
 
             // minumum transfer must be at least "$0.10"
-            if ($amount < floatval(Transaction::MINIMUM_AMOUNT)) throw new Exception("Minimum Transaction is $0.10");
+            if ($amount < floatval(Transaction::MINIMUM_AMOUNT)) {
+                throw new TransactionException("Minimum Transaction is $0.10");
+            }
             // end
 
             $fromWalletData = Wallet::where("address", $fromWallet)
@@ -38,45 +43,93 @@ class SendMoneyAction extends TransactionActionAbstract
             if ($fromWalletData) {
                 $fromWalletData->decrement("balance", $amountAndCharge);
                 $fromWalletData->save();
-            } else throw new Exception("Wallet balance is not enough!");
+            } else {
+                throw new TransactionException("Wallet balance is not enough!");
+            }
             // end
 
             $toWalletData = Wallet::where("address", $toWallet)->first();
 
             // check is toWallet exist and valid
-            // if valid and also exist , add the amount to toWallet balance 
+            // if valid and also exist , add the amount to toWallet balance
             if ($toWalletData) {
                 $toWalletData->increment("balance", $amount);
                 $toWalletData->save();
-            } else throw new Exception("Wallet address not found or Invalid!");
-            // end 
+            } else {
+                throw new TransactionException("Wallet address not found or Invalid!");
+            }
+            // end
 
 
-            // make the transaction invoice 
-            // tx_hash is the transaction uniq_id
-            $tx_hash = strtoupper(StrHelper::random(10)) . preg_replace("/[^0-9]+/",  "", now()
-                ->toDateTimeString());
-            $txCreate = [
-                "tx_hash" => $tx_hash,
+            // make the transaction and  orders  
+            $now = now();
+            $transactionID = strtoupper(StrHelper::random(14)) . $now()->timestamp;
+            $senderOrder = [ // create a new order for sender account
+                "id" => strtoupper(StrHelper::random(14))  . $now()->timestamp,
+                "user_id" => $fromWalletData->user_id,
                 "from_wallet" => $fromWalletData->id,
-                "status" => Transaction::STATUS_COMPLETED,
-                "type" => Transaction::TYPE_SEND_MONEY,
                 "to_wallet" => $toWalletData->id,
-                "completed_at" => now()->toDateTimeString(), //// 
+                "transaction_id" => $transactionID,
+                "note" => $note,
+                "type" => Order::TYPE_SENDING_MONEY,
+                "status" => Order::STATUS_COMPLETED,
                 "amount" => $amount,
                 "charge" => $charge,
-                "note" => $note,
+                "started_at" => $now->toDateTimeString(),
+                "completed_at" => $now->toDateTimeString(),
+                "updated_at" => null,
             ];
-            Transaction::create($txCreate); // end 
+            Order::insert([
+                $senderOrder /*create a new order for sender account*/,
+                [    // create a new order for receiver account
+                    "id" => strtoupper(StrHelper::random(14)) . $now()->timestamp,
+                    "user_id" => $toWalletData->user_id,
+                    "from_wallet" => $fromWalletData->id,
+                    "to_wallet" => $toWalletData->id,
+                    "transaction_id" => $transactionID,
+                    /*  "user_id" => $toWalletData->user_id,
+                    "from_wallet" => $toWalletData->id,
+                    "to_wallet" => $fromWalletData->id, */
+                    "note" => $note,
+                    "type" => Order::TYPE_RECEIVING_MONEY,
+                    "status" => Order::STATUS_COMPLETED,
+                    "amount" => $amount,
+                    "charge" => 0,
+                    "started_at" => $now->toDateTimeString(),
+                    "completed_at" => $now->toDateTimeString(),
+                    "updated_at" => null,
+                ]
+            ]);
+            Transaction::create([
+                "tx_hash" => strtoupper(StrHelper::random(10)) . preg_replace("/[^0-9]+/", "", now()
+                    ->toDateTimeString()),
+                "from_wallet" => $fromWalletData->id,
+                "to_wallet" => $toWalletData->id,
+                "created_at" => $now->toDateTimeString(),
+                "amount" => $amount,
+                "charge" => $charge,
+                // "status" => Transaction::STATUS_COMPLETED,
+                // "type" => Transaction::TYPE_SEND_MONEY,
+                // "completed_at" => now()->toDateTimeString(),
+            ]); // end
 
             DB::commit();
-            return $txCreate;
+            return $senderOrder;
+        } catch (\Exception | \Throwable $e) {
+            DB::rollBack();
+            $exceptionClass = get_class($e);
+            throw new $exceptionClass($e->getMessage());
+        }
+
+        /*   catch (TransactionException $transactionException) {
+            DB::rollBack();
+            return  $transactionException;
         } catch (\Illuminate\Database\QueryException $e) {
             DB::rollBack();
-            throw new Exception($e);
+            return $e;
         } catch (Exception $e) {
             DB::rollBack();
-            throw new Exception($e);
-        }
+            return $e;
+        }   */
     }
 }
