@@ -15,17 +15,23 @@ class TransactionFactory extends Factory
      */
     public function definition()
     {
-        $started_at  = now()->subDays(rand(1, 30));
-        $completed_at = $started_at->addMinutes(rand(1, 30));
+        $fromWalletID = rand(1, 5);
+        $toWalletID = rand(1, 5);
+
+        // $status = [Transaction::STATUS_PENDING, Transaction::STATUS_COMPLETED, Transaction::STATUS_FAILED, TRANSACTION::STATUS_REJECTED];
+        // $type = [Transaction::TYPE_REQUEST_MONEY, Transaction::TYPE_SEND_MONEY, Transaction::TYPE_REWARD];
+        $transactionID = strtoupper(StrHelper::random(14)) . now()->timestamp;
         return [
-            "tx_hash" =>  StrHelper::make(StrHelper::random())->toUpperCase()->result(),
-            "from_wallet" => rand(1, 10), "to_wallet" => rand(11, 20),
-            "status" => rand(0, 1) ?  Transaction::STATUS_PENDING : Transaction::STATUS_COMPLETED,
-            "type" => rand(0, 1) ? Transaction::TYPE_SEND_MONEY : Transaction::TYPE_REQUEST_MONEY, "note" => $this->faker->sentence(),
-            "amount" => floatval(100000000 .  "." . rand(1, 99)),
+            "id" =>  $transactionID,
+            "from_wallet" => $fromWalletID,
+            "to_wallet" => $fromWalletID != $toWalletID ? $toWalletID : $toWalletID + 1,
+            // "status" => $status[rand(0, count($status) - 1)],
+            // "type" => $type[rand(0, count($type) - 1)],
+            // "note" => $this->faker->sentences(rand(2, 4), true),
+            "amount" => floatval(rand(0, 1000000) .  "." . rand(1, 99)),
             "charge" => rand(0, 5000),
-            "started_at" =>   $started_at->toDateTimeString(),
-            "completed_at" => $completed_at->toDateTimeString(),
+            "created_at" =>   now()->toDateTimeString(),
+            "updated_at" => null
         ];
     }
 }
