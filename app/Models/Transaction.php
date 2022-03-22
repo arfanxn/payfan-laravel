@@ -9,13 +9,9 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    // public const CREATED_AT = null, UPDATED_AT = null;
-
-    // public const STATUS_COMPLETED = "COMPLETED", STATUS_PENDING =  "PENDING", STATUS_REJECTED = "REJECTED",   STATUS_FAILED = "FAILED";
+    public const STATUS_COMPLETED = "COMPLETED", STATUS_PENDING =  "PENDING", STATUS_REJECTED = "REJECTED",   STATUS_FAILED = "FAILED";
 
     public const MINIMUM_AMOUNT = "0.10", MAXIMUM_AMOUNT = "100000000.00";
-
-    // public const TYPE_REQUEST_MONEY =  "REQUEST", TYPE_SEND_MONEY = "SEND", TYPE_REWARD = "REWARD";
 
     public  $incrementing = false;
 
