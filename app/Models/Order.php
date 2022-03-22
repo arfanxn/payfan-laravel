@@ -41,8 +41,18 @@ class Order extends Model
 
     public const
         TYPE_SENDING_MONEY = 'SENDING MONEY',
-        TYPE_MAKE_REQUEST_MONEY = 'MAKE REQUEST MONEY',
-        TYPE_PENDING_REQUEST_MONEY = 'PENDING REQUEST MONEY',
+        TYPE_REQUESTING_MONEY = 'REQUESTING MONEY',
+        TYPE_REQUESTED_MONEY = 'REQUESTED MONEY',
         TYPE_RECEIVING_MONEY = 'RECEIVING MONEY',
         TYPE_GIFT = "GIFT";
+
+    public function toWallet()
+    {
+        return $this->belongsTo(Wallet::class, "to_wallet", 'id');
+    }
+
+    public function fromWallet()
+    {
+        return $this->belongsTo(Wallet::class, "from_wallet", 'id');
+    }
 }
