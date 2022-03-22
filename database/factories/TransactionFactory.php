@@ -25,7 +25,7 @@ class TransactionFactory extends Factory
             "id" =>  $transactionID,
             "from_wallet" => $fromWalletID,
             "to_wallet" => $fromWalletID != $toWalletID ? $toWalletID : $toWalletID + 1,
-            // "status" => $status[rand(0, count($status) - 1)],
+            "status" =>   Transaction::STATUS_COMPLETED,    //$status[rand(0, count($status) - 1)],
             // "type" => $type[rand(0, count($type) - 1)],
             // "note" => $this->faker->sentences(rand(2, 4), true),
             "amount" => floatval(rand(0, 1000000) .  "." . rand(1, 99)),
