@@ -60,7 +60,6 @@ class SendMoneyAction extends TransactionActionAbstract
             }
             // end
 
-
             // make the transaction and  orders  
             $now = now();
             $transactionID = strtoupper(StrHelper::random(14)) . $now()->timestamp;
@@ -101,16 +100,13 @@ class SendMoneyAction extends TransactionActionAbstract
                 ]
             ]);
             Transaction::create([
-                "tx_hash" => strtoupper(StrHelper::random(10)) . preg_replace("/[^0-9]+/", "", now()
-                    ->toDateTimeString()),
+                "id" => $transactionID,
                 "from_wallet" => $fromWalletData->id,
                 "to_wallet" => $toWalletData->id,
-                "created_at" => $now->toDateTimeString(),
                 "amount" => $amount,
                 "charge" => $charge,
-                // "status" => Transaction::STATUS_COMPLETED,
-                // "type" => Transaction::TYPE_SEND_MONEY,
-                // "completed_at" => now()->toDateTimeString(),
+                "created_at" => $now->toDateTimeString(),
+                "status" => Transaction::STATUS_COMPLETED,
             ]); // end
 
             DB::commit();
@@ -120,16 +116,5 @@ class SendMoneyAction extends TransactionActionAbstract
             $exceptionClass = get_class($e);
             throw new $exceptionClass($e->getMessage());
         }
-
-        /*   catch (TransactionException $transactionException) {
-            DB::rollBack();
-            return  $transactionException;
-        } catch (\Illuminate\Database\QueryException $e) {
-            DB::rollBack();
-            return $e;
-        } catch (Exception $e) {
-            DB::rollBack();
-            return $e;
-        }   */
     }
 }

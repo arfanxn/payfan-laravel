@@ -33,9 +33,12 @@ class SendMoneyController extends Controller
             return $sendMoneyData ?
                 response()->json(['message' => "Send money successfully.", "invoice" => $sendMoneyData])
                 : ErrorsResponse::server();
+        } catch (\App\Exceptions\TransactionException $transactionException) {
+            return response()->json(['error_message' => $transactionException->getMessage()], 300);
         } catch (\Exception $e) {
-            return response($e);
-            return ErrorsResponse::server();
+            return app()->environment("local") ?
+                response()->json(['error_message' => $e->getMessage()])
+                : ErrorsResponse::server();
         }
     }
 }

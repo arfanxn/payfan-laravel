@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\RequestMoneyAction;
+use App\Models\Order;
 use App\Models\Transaction;
 use App\Notifications\MakeRequestMoneyNotification;
 use App\Responses\ErrorsResponse;
@@ -43,12 +44,13 @@ class RequestMoneyController extends Controller
                 response()->json(['message' => "Send money successfully.", "invoice" => $requestMoneyData])
                 : ErrorsResponse::server();
         } catch (\Exception $e) {
-            return response($e);
-            return ErrorsResponse::server();
+            return app()->environment("local") ?
+                response()->json(['error_message' => $e->getMessage()])
+                : ErrorsResponse::server();
         }
     }
 
-    public function approve(Request $request, Transaction $transaction)
+    public function approve(Request $request, Order $order)
     {
         $validator = Validator::make($request->all(), [
             "charge" => "nullable|numeric|between:0.00,100.00"
@@ -58,7 +60,7 @@ class RequestMoneyController extends Controller
         $charge = floatval($validator->validated()['charge']) ?? 0;
 
         try {
-            $approvedReqMoney = RequestMoneyAction::approve($transaction, $charge);
+            $approvedReqMoney = RequestMoneyAction::approve($order, $charge);
 
             return $approvedReqMoney ?
                 response()->json([
@@ -67,8 +69,9 @@ class RequestMoneyController extends Controller
                 ])
                 : ErrorsResponse::server();
         } catch (\Exception $e) {
-            return response($e);
-            return ErrorsResponse::server();
+            return app()->environment("local") ?
+                response()->json(['error_message' => $e->getMessage()])
+                : ErrorsResponse::server();
         }
     }
 }

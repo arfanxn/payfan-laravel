@@ -35,18 +35,6 @@ class RequestMoneyAction extends TransactionActionAbstract
 
             $toWalletData = Wallet::where("address", $toWallet)->first();
 
-            // make the transaction history / transaction invoice 
-            // tx_hash is the transaction uniq_id
-            $tx_hash = strtoupper(StrHelper::random(10)) . preg_replace("/[^0-9]+/",  "", now()->toDateTimeString());
-            $txCreate = [
-                "tx_hash" => $tx_hash,
-                "from_wallet" => $fromWalletData->id,
-                // "status" => Transaction::STATUS_PENDING,
-                // "type" => Transaction::TYPE_REQUEST_MONEY,
-                "to_wallet" => $toWalletData->id,
-                "amount" => $amount,
-                "note" => $note,
-            ];
             $now = now();
             $transactionID = strtoupper(StrHelper::random(14)) . $now()->timestamp;
             $requesterOrder = [ // create a new order for requester money/payment account
@@ -56,7 +44,7 @@ class RequestMoneyAction extends TransactionActionAbstract
                 "to_wallet" => $toWalletData->id,
                 "transaction_id" => $transactionID,
                 "note" => $note,
-                "type" => Order::TYPE_MAKE_REQUEST_MONEY,
+                "type" => Order::TYPE_REQUESTING_MONEY,
                 "status" => Order::STATUS_PENDING,
                 "amount" => $amount,
                 "started_at" => $now->toDateTimeString(),
@@ -72,7 +60,7 @@ class RequestMoneyAction extends TransactionActionAbstract
                     "to_wallet" => $toWalletData->id,
                     "transaction_id" => $transactionID,
                     "note" => $note,
-                    "type" => Order::TYPE_PENDING_REQUEST_MONEY,
+                    "type" => Order::TYPE_REQUESTED_MONEY,
                     "status" => Order::STATUS_PENDING,
                     "amount" => $amount,
                     "charge" => $charge,
@@ -81,6 +69,15 @@ class RequestMoneyAction extends TransactionActionAbstract
                     "updated_at" => null,
                 ]
             ]);
+            Transaction::create([
+                "id" => $transactionID,
+                "from_wallet" => $fromWalletData->id,
+                "to_wallet" => $toWalletData->id,
+                "amount" => $amount,
+                "charge" => $charge,
+                "status" => Transaction::STATUS_PENDING,
+                "created_at" => $now->toDateTimeString(),
+            ]); // end
 
             DB::commit();
             return $requesterOrder;
@@ -91,15 +88,15 @@ class RequestMoneyAction extends TransactionActionAbstract
         }
     }
 
-    public static function approve(Transaction  $transaction, float $charge = 0)
+    public static function approve(Order  $order, float $charge = 0)
     {
         try {
             DB::beginTransaction();
-            $amount = ($transaction->amount);
-            $charge = $transaction->charge ?? $charge;
+            $amount = ($order->amount);
+            $charge = $order->charge ?? $charge;
             $amountAndCharge = ($amount) + ($charge);
-            $toWallet = $transaction->toWallet;
-            $fromWallet = $transaction->fromWallet;
+            $toWallet = $order->toWallet->address;
+            $fromWallet = $order->fromWallet->address;
 
             $fromWalletData = Wallet::where("address", $fromWallet)
                 ->where("balance", ">=", ($amountAndCharge))->first();
@@ -122,26 +119,32 @@ class RequestMoneyAction extends TransactionActionAbstract
             } else throw new TransactionException("Wallet balance is not enough!");
             // end 
 
-            // update the transaction status
-            // $transaction->status = Transaction::STATUS_COMPLETED;
-            // $transaction->completed_at = now()->toDateTimeString;
-            // $transaction->save();
+            // update the order status 1
+            $order->status = Order::STATUS_COMPLETED;
+            $order->completed_at = now()->toDateTimeString;
+            // $order->save();
+            // update the order status 2
+            Order::where(fn ($q) => $q
+                // ->where("user_id", "!=", $order->user_id)
+                ->where('transaction_id', $order->transaction_id)  /**/)
+                ->update([
+                    "status" => Order::STATUS_COMPLETED,
+                ]);
             // end 
 
+            // update the transaction status 
+            Transaction::where(fn ($q) => $q->where("id", $order->transaction_id))
+                ->update([
+                    "status" => Transaction::STATUS_COMPLETED,
+                ]);
+            // end
+
             DB::commit();
-            return $transaction;
+            return $order; // return the updated order object 
         } catch (\Exception | \Throwable $e) {
             DB::rollBack();
             $exceptionClass = get_class($e);
             throw new $exceptionClass($e->getMessage());
         }
-
-        /*    catch (\Illuminate\Database\QueryException $e) {
-            DB::rollBack();
-            throw new Exception($e);
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw new Exception($e);
-        }    */
     }
 }

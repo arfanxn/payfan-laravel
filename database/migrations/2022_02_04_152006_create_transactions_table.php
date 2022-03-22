@@ -22,6 +22,7 @@ class CreateTransactionsTable extends Migration
                 ->onUpdate("cascade");
             $table->unsignedDecimal("amount", 11, 2);
             $table->unsignedInteger("charge")->default(0);
+            $table->string("status");
             $table->timestamps();
         });
     }
