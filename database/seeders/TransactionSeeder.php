@@ -23,9 +23,6 @@ class TransactionSeeder extends Seeder
         $now = Carbon::now();
 
         Transaction::factory()->count($total)->create()->each(function (Transaction $transaction)  use ($total, $now, $faker_ID) {
-            // $transaction = $transaction->load(["fromWallet", "toWallet"]);
-            Log::info($transaction);
-            Log::info("Transaction Id : $transaction->id");
             $order1 = [
                 "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
                 "user_id" => $transaction->from_wallet,
