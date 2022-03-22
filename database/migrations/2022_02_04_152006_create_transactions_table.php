@@ -14,19 +14,15 @@ class CreateTransactionsTable extends Migration
     public function up()
     {
         Schema::create('transactions', function (Blueprint $table) {
-            $table->id();
-            $table->string("tx_hash", 50);
+            $table->uuid("id")->primary();
+            // $table->string("tx_hash", 50);
             $table->foreignId("from_wallet")->nullable()->constrained("wallets", "id")
                 ->onUpdate("cascade");
             $table->foreignId("to_wallet")->constrained("wallets", "id")
                 ->onUpdate("cascade");
-            $table->string("status");
-            $table->string("type");
-            $table->string("note", 1000)->nullable();
             $table->unsignedDecimal("amount", 11, 2);
             $table->unsignedInteger("charge")->default(0);
-            $table->timestamp("started_at")->default(now()->toDateTimeString());
-            $table->timestamp("completed_at")->nullable()->default(null);
+            $table->timestamps();
         });
     }
 
