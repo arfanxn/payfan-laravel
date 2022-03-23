@@ -41,10 +41,16 @@ class Order extends Model
 
     public const
         TYPE_SENDING_MONEY = 'SENDING MONEY',
-        TYPE_REQUESTING_MONEY = 'REQUESTING MONEY',
-        TYPE_REQUESTED_MONEY = 'REQUESTED MONEY',
         TYPE_RECEIVING_MONEY = 'RECEIVING MONEY',
-        TYPE_GIFT = "GIFT";
+        /**/
+        TYPE_REQUESTING_MONEY = 'REQUESTING MONEY',
+        TYPE_REQUESTED_MONEY = 'REQUESTED MONEY';
+    public final static function TYPE_GIFT_FROM(string $from = null)
+    {
+        $from = is_null($from) ? config("app.name") : $from;
+        return "GIFT FROM $from";
+    }
+
 
     public function toWallet()
     {
