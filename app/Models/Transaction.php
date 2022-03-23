@@ -24,6 +24,12 @@ class Transaction extends Model
         "amount", "charge",
     ];
 
+    public static function boot()
+    {
+        parent::boot();
+        parent::observe(\App\Observers\TransactionObserver::class);
+    }
+
     public function toWallet()
     {
         return $this->belongsTo(Wallet::class, "to_wallet", 'id');
