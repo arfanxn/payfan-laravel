@@ -17,7 +17,8 @@ class TransactionObserver
 
         if ($transaction->status == Transaction::STATUS_COMPLETED) {
             Wallet::query()->where(fn ($q) =>
-            $q->whereIn("id", [$transaction->from_wallet, $transaction->to_wallet]));
+            $q->whereIn("id", [$transaction->from_wallet, $transaction->to_wallet]))
+                ->increment("total_transaction", 1, ["last_transaction" => now()->toDateTimeString()] /**/);
         }
     }
 }
