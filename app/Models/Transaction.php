@@ -21,7 +21,7 @@ class Transaction extends Model
 
     protected $fillable = [
         "id", "from_wallet", "to_wallet",
-        "amount", "charge",
+        "amount", "charge", "status",
     ];
 
     public static function boot()
