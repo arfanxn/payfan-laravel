@@ -26,7 +26,11 @@ class OrderController extends Controller
         ]);
         $validatorValidated = $validator->validated();
 
-        $orderQuery = Order::with(['fromWallet.user', "toWallet.user",])
+        $perPage = 10;
+        $currentPage = $request->get("page", 1);
+        $offset = ($currentPage * $perPage) - $perPage;
+
+        $orderQuery = Order::with(['fromWallet.user', "toWallet.user",])->offset($offset)->limit($perPage)
             ->where(fn ($q) => $q->where("user_id", Auth::id() /**/) /**/);
 
         $orders = OrderRepository::filters([
@@ -35,11 +39,24 @@ class OrderController extends Controller
             "end_at" => $validatorValidated['end_at'] ?? null,
             "status" => $validatorValidated['status'] ?? null,
             "type" => $validatorValidated['type'] ?? null,
-        ], $orderQuery)->orderBy("started_at", "desc")->simplePaginate(10);
+        ], $orderQuery)
+            ->orderBy("started_at", "desc")
+            ->get()
+            ->groupBy(
+                fn (\App\Models\Order $order) => \Carbon\Carbon::parse($order->created_at)->format('Y-m'),
+            );
 
-        $orders = new OrderCollection($orders);
-
-        return  response()->json(['orders' => $orders]);
+        $ordersPaginator = new \Illuminate\Pagination\Paginator(
+            $orders->toArray(),
+            // $users->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
+        return  response()->json(['orders' => $ordersPaginator]);
     }
 
     /**
