@@ -53,12 +53,12 @@ class OrderRepository
                 case Order::TYPE_REQUESTED_MONEY:
                     $orderQuery->where("type", Order::TYPE_REQUESTED_MONEY);
                     break;
-                case Order::TYPE_GIFT:
+                case Order::TYPE_GIFT_FROM(config("app.name")):
                 case "RECEIVED":
                 case "RECEIVING MONEY":
                 case "RECEIVE":
                     $orderQuery->where(fn ($q) => $q
-                        ->where("type", Order::TYPE_GIFT)
+                        ->where("type", Order::TYPE_GIFT_FROM(config("app.name")))
                         ->orWhere("type", Order::TYPE_RECEIVING_MONEY));
                     break;
             }
