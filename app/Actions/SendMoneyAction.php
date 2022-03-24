@@ -8,11 +8,12 @@ use App\Models\Order;
 use App\Models\Transaction;
 use App\Models\Wallet;
 use Exception;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 class SendMoneyAction extends TransactionActionAbstract
 {
-    public function exec()
+    public function exec(): array |TransactionException | QueryException| Exception
     {
         try {
             DB::beginTransaction();
@@ -62,9 +63,18 @@ class SendMoneyAction extends TransactionActionAbstract
 
             // make the transaction and  orders  
             $now = now();
-            $transactionID = strtoupper(StrHelper::random(14)) . $now()->timestamp;
+            $transactionID = strtoupper(StrHelper::random(14)) . $now->timestamp;
+            Transaction::create([
+                "id" => $transactionID,
+                "from_wallet" => $fromWalletData->id,
+                "to_wallet" => $toWalletData->id,
+                "amount" => $amount,
+                "charge" => $charge,
+                "created_at" => $now->toDateTimeString(),
+                "status" => Transaction::STATUS_COMPLETED,
+            ]); // end
             $senderOrder = [ // create a new order for sender account
-                "id" => strtoupper(StrHelper::random(14))  . $now()->timestamp,
+                "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
                 "user_id" => $fromWalletData->user_id,
                 "from_wallet" => $fromWalletData->id,
                 "to_wallet" => $toWalletData->id,
@@ -81,14 +91,11 @@ class SendMoneyAction extends TransactionActionAbstract
             Order::insert([
                 $senderOrder /*create a new order for sender account*/,
                 [    // create a new order for receiver account
-                    "id" => strtoupper(StrHelper::random(14)) . $now()->timestamp,
+                    "id" => strtoupper(StrHelper::random(14)) . $now->timestamp,
                     "user_id" => $toWalletData->user_id,
                     "from_wallet" => $fromWalletData->id,
                     "to_wallet" => $toWalletData->id,
                     "transaction_id" => $transactionID,
-                    /*  "user_id" => $toWalletData->user_id,
-                    "from_wallet" => $toWalletData->id,
-                    "to_wallet" => $fromWalletData->id, */
                     "note" => $note,
                     "type" => Order::TYPE_RECEIVING_MONEY,
                     "status" => Order::STATUS_COMPLETED,
@@ -99,22 +106,12 @@ class SendMoneyAction extends TransactionActionAbstract
                     "updated_at" => null,
                 ]
             ]);
-            Transaction::create([
-                "id" => $transactionID,
-                "from_wallet" => $fromWalletData->id,
-                "to_wallet" => $toWalletData->id,
-                "amount" => $amount,
-                "charge" => $charge,
-                "created_at" => $now->toDateTimeString(),
-                "status" => Transaction::STATUS_COMPLETED,
-            ]); // end
 
             DB::commit();
             return $senderOrder;
         } catch (\Exception | \Throwable $e) {
             DB::rollBack();
-            $exceptionClass = get_class($e);
-            throw new $exceptionClass($e->getMessage());
+            return $e;
         }
     }
 }

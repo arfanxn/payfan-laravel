@@ -36,9 +36,9 @@ class RequestMoneyAction extends TransactionActionAbstract
             $toWalletData = Wallet::where("address", $toWallet)->first();
 
             $now = now();
-            $transactionID = strtoupper(StrHelper::random(14)) . $now()->timestamp;
+            $transactionID = strtoupper(StrHelper::random(14)) . $now->timestamp;
             $requesterOrder = [ // create a new order for requester money/payment account
-                "id" => strtoupper(StrHelper::random(14))  . $now()->timestamp,
+                "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
                 "user_id" => $fromWalletData->user_id,
                 "from_wallet" => $fromWalletData->id,
                 "to_wallet" => $toWalletData->id,
@@ -54,7 +54,7 @@ class RequestMoneyAction extends TransactionActionAbstract
             Order::insert([
                 $requesterOrder,
                 [   // create a new order for  account that being requested request money
-                    "id" => strtoupper(StrHelper::random(14))  . $now()->timestamp,
+                    "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
                     "user_id" => $toWalletData->user_id,
                     "from_wallet" => $fromWalletData->id,
                     "to_wallet" => $toWalletData->id,
@@ -83,8 +83,7 @@ class RequestMoneyAction extends TransactionActionAbstract
             return $requesterOrder;
         } catch (\Exception | \Throwable $e) {
             DB::rollBack();
-            $exceptionClass = get_class($e);
-            throw new $exceptionClass($e->getMessage());
+            return $e;
         }
     }
 
@@ -119,16 +118,18 @@ class RequestMoneyAction extends TransactionActionAbstract
             } else throw new TransactionException("Wallet balance is not enough!");
             // end 
 
-            // update the order status 1
+            // create -> order & transaction completed_at from "Carbon::now()" 
+            $completedAt = now()->toDateTimeString();
+            // update the order model object 
             $order->status = Order::STATUS_COMPLETED;
-            $order->completed_at = now()->toDateTimeString;
-            // $order->save();
-            // update the order status 2
+            $order->completed_at = $completedAt;
+            // update the order databases 
             Order::where(fn ($q) => $q
                 // ->where("user_id", "!=", $order->user_id)
                 ->where('transaction_id', $order->transaction_id)  /**/)
                 ->update([
                     "status" => Order::STATUS_COMPLETED,
+                    "completed_at" => $completedAt
                 ]);
             // end 
 
@@ -136,6 +137,7 @@ class RequestMoneyAction extends TransactionActionAbstract
             Transaction::where(fn ($q) => $q->where("id", $order->transaction_id))
                 ->update([
                     "status" => Transaction::STATUS_COMPLETED,
+                    // "completed_at" => $completedAt
                 ]);
             // end
 
@@ -143,8 +145,7 @@ class RequestMoneyAction extends TransactionActionAbstract
             return $order; // return the updated order object 
         } catch (\Exception | \Throwable $e) {
             DB::rollBack();
-            $exceptionClass = get_class($e);
-            throw new $exceptionClass($e->getMessage());
+            return $e;
         }
     }
 }

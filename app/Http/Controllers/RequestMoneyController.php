@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\RequestMoneyAction;
 use App\Models\Order;
 use App\Models\Transaction;
-use App\Notifications\MakeRequestMoneyNotification;
+use App\Notifications\MakeRequestingMoneyNotification;
 use App\Responses\ErrorsResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -34,20 +34,27 @@ class RequestMoneyController extends Controller
 
         if ($validator->fails()) return response()->json($validator->errors()->messages(), 422);
 
-        try {
-            $requestMoneyData = $requestMoney->setFromWallet(Auth::user()->wallet)->setToWallet($toWalletAddress)
-                ->setAmount($amount)->setNote($note)->make();
+        $requestMoneyData = $requestMoney->setFromWallet(Auth::user()->wallet)->setToWallet($toWalletAddress)
+            ->setAmount($amount)->setNote($note)->make();
 
-            Notification::send(Auth::user(), new MakeRequestMoneyNotification($requestMoneyData));
+        // if the operations was failed
+        if ($requestMoneyData instanceof \Exception) {
+            if ($requestMoneyData instanceof \App\Exceptions\TransactionException)
+                return response()->json(['error_message' => $requestMoneyData->getMessage()], 300);
 
-            return $requestMoneyData ?
-                response()->json(['message' => "Send money successfully.", "invoice" => $requestMoneyData])
-                : ErrorsResponse::server();
-        } catch (\Exception $e) {
-            return app()->environment("local") ?
-                response()->json(['error_message' => $e->getMessage()])
+            return app()->environment(['local', "debug", "debugging"]) ?
+                response()->json(['error_message' => $requestMoneyData->getMessage()], 500)
                 : ErrorsResponse::server();
         }
+
+        Notification::send(Auth::user(), new MakeRequestingMoneyNotification($requestMoneyData));
+
+        return $requestMoneyData ?
+            response()->json([
+                'message' => "Requesting Money or Payment to Wallet address : $toWalletAddress, has been sent successfully.",
+                "invoice" => $requestMoneyData
+            ])
+            : ErrorsResponse::server();
     }
 
     public function approve(Request $request, Order $order)
@@ -59,19 +66,24 @@ class RequestMoneyController extends Controller
 
         $charge = floatval($validator->validated()['charge']) ?? 0;
 
-        try {
-            $approvedReqMoney = RequestMoneyAction::approve($order, $charge);
 
-            return $approvedReqMoney ?
-                response()->json([
-                    'message' => "Send money successfully.",
-                    "invoice" => $approvedReqMoney
-                ])
-                : ErrorsResponse::server();
-        } catch (\Exception $e) {
-            return app()->environment("local") ?
-                response()->json(['error_message' => $e->getMessage()])
+        $approvedReqMoney = RequestMoneyAction::approve($order, $charge);
+
+        // if the operations was failed
+        if ($approvedReqMoney instanceof \Exception) {
+            if ($approvedReqMoney instanceof \App\Exceptions\TransactionException)
+                return response()->json(['error_message' => $approvedReqMoney->getMessage()], 300);
+
+            return app()->environment(['local', "debug", "debugging"]) ?
+                response()->json(['error_message' => $approvedReqMoney->getMessage()], 500)
                 : ErrorsResponse::server();
         }
+
+        return $approvedReqMoney ?
+            response()->json([
+                'message' => "Requested Money or Payment has been approved.",
+                "invoice" => $approvedReqMoney
+            ])
+            : ErrorsResponse::server();
     }
 }

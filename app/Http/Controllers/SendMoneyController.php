@@ -26,19 +26,20 @@ class SendMoneyController extends Controller
         $note = $validator->validated()['note']  ?? "";
         $toWalletAddress = $validator->validated()['to_wallet'];
 
-        try {
-            $sendMoneyData = $sendMoney->setFromWallet(Auth::user()->wallet)->setToWallet($toWalletAddress)
-                ->setAmount($amount)->setCharge($charge)->setNote($note)->exec();
+        $sendMoneyData = $sendMoney->setFromWallet(Auth::user()->wallet)->setToWallet($toWalletAddress)
+            ->setAmount($amount)->setCharge($charge)->setNote($note)->exec();
 
-            return $sendMoneyData ?
-                response()->json(['message' => "Send money successfully.", "invoice" => $sendMoneyData])
-                : ErrorsResponse::server();
-        } catch (\App\Exceptions\TransactionException $transactionException) {
-            return response()->json(['error_message' => $transactionException->getMessage()], 300);
-        } catch (\Exception $e) {
-            return app()->environment("local") ?
-                response()->json(['error_message' => $e->getMessage()])
+        if ($sendMoneyData instanceof \Exception) {
+            if ($sendMoneyData instanceof \App\Exceptions\TransactionException)
+                return response()->json(['error_message' => $sendMoneyData->getMessage()], 300);
+
+            return app()->environment(['local', "debug", "debugging"]) ?
+                response()->json(['error_message' => $sendMoneyData->getMessage()], 500)
                 : ErrorsResponse::server();
         }
+
+        return $sendMoneyData ?
+            response()->json(['message' => "Send money successfully.", "invoice" => $sendMoneyData])
+            : ErrorsResponse::server();
     }
 }
