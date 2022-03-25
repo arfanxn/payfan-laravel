@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use DateTime;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -30,6 +31,11 @@ class Order extends Model
     protected $casts = [
         'id' => 'string'
     ];
+    protected $dates = [
+        'started_at',
+        "completed_at",
+        "updated_at",
+    ];
 
     public const
         STATUS_COMPLETED = "COMPLETED",
@@ -45,10 +51,10 @@ class Order extends Model
         /**/
         TYPE_REQUESTING_MONEY = 'REQUESTING MONEY',
         TYPE_REQUESTED_MONEY = 'REQUESTED MONEY';
-    public final static function TYPE_GIFT_FROM(string $from = null)
+    public final static function TYPE_GIFT_FROM(string $from = null): string
     {
         $from = is_null($from) ? config("app.name") : $from;
-        return "GIFT FROM $from";
+        return strtoupper("GIFT FROM $from");
     }
 
 
