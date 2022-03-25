@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RequestMoneyController;
 use App\Http\Controllers\SearchPeopleController;
 use App\Http\Controllers\SendMoneyController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserSettingController;
 use App\Http\Controllers\ValidatorController;
+use Illuminate\Support\Facades\DB;
 
 /*
 |--------------------------------------------------------------------------
@@ -82,7 +84,8 @@ Route::prefix("user")->middleware("api")->group(function () {
             Route::prefix("settings")->middleware("verification_code.verify")->group(function () {
                 Route::patch("/2fa", [UserSettingController::class, "disableOrEnable2FA"]);
                 Route::patch("security-question", [UserSettingController::class, "updateSecurityQuestion"]);
-                Route::patch("notifications", [UserSettingController::class, "updateNotificationSettings"])->withoutMiddleware(["verification_code.verify"]);
+                Route::patch("notifications", [UserSettingController::class, "updateNotificationSettings"])
+                    ->withoutMiddleware(["verification_code.verify"]);
             });
 
             Route::prefix("contacts")->group(function () {
@@ -91,18 +94,31 @@ Route::prefix("user")->middleware("api")->group(function () {
             Route::prefix("contact")->group(function () {
                 Route::get("{contact}/last-transaction", [ContactController::class, "lastTransactionDetail"]);
                 Route::get("{contact}/toggle-favorite", [ContactController::class, "toggleFavorite"]);
-                Route::post("/add-or-rm/user/{user}", [ContactController::class, "addOrRemove"]);
+                Route::post("/add-or-rm/user/{user:id}", [ContactController::class, "addOrRemove"]);
                 Route::post("/{contact}/block", [ContactController::class, "block"]);
             });
 
-            Route::get("transactions", [TransactionController::class, "index"]);
+            // will be disabled  soon
+            // Route::get("transactions", [TransactionController::class, "index"]);
+            // Route::prefix("transaction")->group(function () {
+            //     Route::get("{transaction:tx_hash}", [TransactionController::class, "show"]);
+            //     Route::post("/send-money", SendMoneyController::class)->middleware("verification_code.verify");
+            //     Route::post("/request-money/make", [RequestMoneyController::class, "make"]);
+            //     Route::patch("/request-money/{transaction:tx_hash}/approve", [RequestMoneyController::class, "approve"])
+            //         ->middleware("verification_code.verify");
+            // });
+            // end of will be disabled
+
+            Route::get("orders", [OrderController::class, "index"]);
+            Route::get("order/{order:id}", [OrderController::class, "show"]);
             Route::prefix("transaction")->group(function () {
-                Route::get("{transaction:tx_hash}", [TransactionController::class, "show"]);
                 Route::post("/send-money", SendMoneyController::class)->middleware("verification_code.verify");
                 Route::post("/request-money/make", [RequestMoneyController::class, "make"]);
-                Route::patch("/request-money/{transaction:tx_hash}/approve", [RequestMoneyController::class, "approve"])->middleware("verification_code.verify");
+                Route::patch(
+                    "/request-money/order/{order:id}/approve",
+                    [RequestMoneyController::class, "approve"]
+                )->middleware("verification_code.verify");
             });
-
 
             Route::prefix("notifications")->group(function () { // pluralize
                 Route::get("", [NotificationController::class, "index"]);
@@ -122,4 +138,7 @@ Route::get("users-and-contacts/search", [SearchPeopleController::class, "searchE
 
 
 Route::post("test", function (Request  $request) {
+    // return   Illuminate\Support\Str::contains(\App\Models\Order::TYPE_GIFT_FROM(),   strtoupper("payfan gift"));
+
+    return \App\Models\User::limit(1)->first();
 });
