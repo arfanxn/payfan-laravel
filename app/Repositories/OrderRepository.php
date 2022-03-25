@@ -2,10 +2,10 @@
 
 namespace App\Repositories;
 
+use Illuminate\Support\Str;
 use App\Models\Order;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
-use App\Models\Transaction;
-use App\Models\Wallet;
+
 
 class OrderRepository
 {
@@ -16,7 +16,7 @@ class OrderRepository
         ['keyword' => $keyword, "start_at" => $start_at, "end_at" => $end_at, "status" => $status, "type" => $type] = $options;
         if ($keyword) {
             $orderQuery  = $orderQuery->where(fn ($q)
-            => $q->where("tx_hash", "LIKE", "$keyword%")->orWhere("note", "LIKE", "$keyword%"));
+            => $q->where("id", "LIKE", "$keyword%")->orWhere("note", "LIKE", "$keyword%"))->orWhere("amount", "LIKE", "$keyword%");
         }
         if ($start_at) {
             $orderQuery = $orderQuery->where("started_at", ">=", $start_at);
@@ -43,25 +43,23 @@ class OrderRepository
             }
         }
         if ($type) {
-            switch (strtoupper($type)) {
-                case Order::TYPE_SENDING_MONEY:
-                    $orderQuery->where("type", Order::TYPE_SENDING_MONEY);
-                    break;
-                case Order::TYPE_REQUESTING_MONEY:
-                    $orderQuery->where("type", Order::TYPE_REQUESTING_MONEY);
-                    break;
-                case Order::TYPE_REQUESTED_MONEY:
-                    $orderQuery->where("type", Order::TYPE_REQUESTED_MONEY);
-                    break;
-                case Order::TYPE_GIFT_FROM(config("app.name")):
-                case "RECEIVED":
-                case "RECEIVING MONEY":
-                case "RECEIVE":
-                    $orderQuery->where(fn ($q) => $q
-                        ->where("type", Order::TYPE_GIFT_FROM(config("app.name")))
-                        ->orWhere("type", Order::TYPE_RECEIVING_MONEY));
-                    break;
-            }
+            $type = strtoupper($type);
+            if (Str::contains(Order::TYPE_SENDING_MONEY, $type))
+                $orderQuery->where("type", Order::TYPE_SENDING_MONEY);
+
+            else if (Str::contains(Order::TYPE_RECEIVING_MONEY, $type))
+                $orderQuery->where("type", Order::TYPE_RECEIVING_MONEY);
+
+            else if (Str::contains(Order::TYPE_REQUESTING_MONEY, $type))
+                $orderQuery->where("type", Order::TYPE_REQUESTING_MONEY);
+
+            else if (Str::contains(Order::TYPE_REQUESTED_MONEY, $type))
+                $orderQuery->where("type", Order::TYPE_REQUESTED_MONEY);
+
+            else if (Str::contains(Order::TYPE_GIFT_FROM(/**/), explode(" ", $type)/**/)  /**/)
+                $orderQuery->where(fn ($q) => $q
+                    ->where("type", "GIFT")
+                    ->orWhere("type", Order::TYPE_GIFT_FROM()));
         }
 
         return $orderQuery;
