@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Casts\UserCast;
+use App\Helpers\URLHelper;
 use Exception;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -47,8 +47,12 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        "profile_pict" => \App\Casts\UserProfilePictCast::class,
     ];
+
+    public function getProfilePictAttribute($profilePict)
+    {
+        return URLHelper::userProfilePict($profilePict);
+    }
 
     /**
      * Get the identifier that will be stored in the subject claim of the JWT.
