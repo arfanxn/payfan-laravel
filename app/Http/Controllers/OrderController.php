@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
@@ -19,8 +20,14 @@ class OrderController extends Controller
     {
         $validator = Validator::make($request->all(), [
             "keyword" => "nullable|string",
-            "start_at" => "nullable|date|before:end_at",
-            "end_at" => "nullable|date|after:start_at",
+            "start_at" => [
+                "nullable", "date",
+                Rule::when($request->end_at ?? false, ["before:end_at"])
+            ],
+            "end_at" => [
+                "nullable", "date",
+                Rule::when($request->start_at ?? false, ["after:start_at"])
+            ],
             "status" => "nullable|string",
             "type" => "nullable|string",
         ]);
@@ -30,7 +37,8 @@ class OrderController extends Controller
         $currentPage = $request->get("page", 1);
         $offset = ($currentPage * $perPage) - $perPage;
 
-        $orderQuery = Order::with(['fromWallet.user', "toWallet.user",])->offset($offset)->limit($perPage)
+        $orderQuery = Order::with(['fromWallet.user', "toWallet.user",])
+            ->offset($offset)->limit($perPage)
             ->where(fn ($q) => $q->where("user_id", Auth::id() /**/) /**/);
 
         $orders = OrderRepository::filters([
@@ -41,13 +49,14 @@ class OrderController extends Controller
             "type" => $validatorValidated['type'] ?? null,
         ], $orderQuery)
             ->orderBy("started_at", "desc")
-            ->get()
-            ->groupBy(
-                fn (\App\Models\Order $order) => \Carbon\Carbon::parse($order->created_at)->format('Y-m'),
-            );
+            ->get();
 
-        $ordersPaginator = new \Illuminate\Pagination\Paginator(
-            $orders->toArray(),
+        $ordersGrouped  = $orders->groupBy(
+            fn (\App\Models\Order $order) => \Carbon\Carbon::parse($order->created_at)->format('Y-m'),
+        );
+
+        $ordersPaginator = (new \Illuminate\Pagination\Paginator(
+            $ordersGrouped->toArray(),
             // $users->count(),
             $perPage,
             $currentPage,
@@ -55,8 +64,12 @@ class OrderController extends Controller
                 'path' => request()->url(),
                 'query' => request()->query(),
             ]
-        );
-        return  response()->json(['orders' => $ordersPaginator]);
+        ));
+        $additionalsPagination  = collect(["total_retrived" => $orders->count()]);
+
+        $mergedPaginationWithAdditionals =  $additionalsPagination->merge($ordersPaginator);
+
+        return  response()->json(['orders' => $mergedPaginationWithAdditionals]);
     }
 
     /**
