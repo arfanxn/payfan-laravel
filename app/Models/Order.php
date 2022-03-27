@@ -10,6 +10,9 @@ class Order extends Model
 {
     use HasFactory;
 
+    // this tables has not having column below 
+    public const CREATED_AT = null, UPDATED_AT = null;
+
     protected $fillable = [
         "id",
         "user_id",
@@ -29,13 +32,16 @@ class Order extends Model
     public $incrementing = false;
 
     protected $casts = [
-        'id' => 'string'
+        'id' => 'string',
+        'started_at' => "datetime",
+        "completed_at" => "datetime",
+        "updated_at" => "datetime",
     ];
-    protected $dates = [
-        'started_at',
-        "completed_at",
-        "updated_at",
-    ];
+    // protected $dates = [
+    //     'started_at',
+    //     "completed_at",
+    //     "updated_at",
+    // ];
 
     public const
         STATUS_COMPLETED = "COMPLETED",
