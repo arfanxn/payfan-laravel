@@ -16,7 +16,7 @@ class CreateOrdersTable extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->uuid("id")->primary();
             $table->foreignId("user_id")->constrained("users", "id")->onDelete("cascade");
-            $table->foreignId("from_wallet")->nullable() // nullable
+            $table->foreignId("from_wallet")
                 ->constrained("wallets", "id")->onDelete("cascade");
             $table->foreignId("to_wallet")
                 ->constrained("wallets", "id")->onDelete("cascade");
