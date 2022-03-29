@@ -18,7 +18,7 @@ class NotificationController extends Controller
     public function index()
     {
         $totalUnreadNotifications = NotificationRepository::make()->where_Notifiable(Auth::user())->where_Unread()->getBuilder()->count();
-        $notifications = User::with(["notifications"])->find(Auth::id())->first()->notifications()->simplePaginate(20);
+        $notifications = Auth::user()->notifications()->simplePaginate(20);
 
         $notifications = collect(['total_unread' => $totalUnreadNotifications])->merge($notifications);
         return response()->json(["notifications" => $notifications]);
