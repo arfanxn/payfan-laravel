@@ -96,18 +96,7 @@ Route::prefix("user")->middleware("api")->group(function () {
                 Route::get("{contact}/toggle-favorite", [ContactController::class, "toggleFavorite"]);
                 Route::post("/add-or-rm/user/{user:id}", [ContactController::class, "addOrRemove"]);
                 Route::post("/{contact}/block", [ContactController::class, "block"]);
-            });
-
-            // will be disabled  soon
-            // Route::get("transactions", [TransactionController::class, "index"]);
-            // Route::prefix("transaction")->group(function () {
-            //     Route::get("{transaction:tx_hash}", [TransactionController::class, "show"]);
-            //     Route::post("/send-money", SendMoneyController::class)->middleware("verification_code.verify");
-            //     Route::post("/request-money/make", [RequestMoneyController::class, "make"]);
-            //     Route::patch("/request-money/{transaction:tx_hash}/approve", [RequestMoneyController::class, "approve"])
-            //         ->middleware("verification_code.verify");
-            // });
-            // end of will be disabled
+        });
 
             Route::get("orders", [OrderController::class, "index"]);
             Route::get("order/{order:id}", [OrderController::class, "show"]);
