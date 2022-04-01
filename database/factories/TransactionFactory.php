@@ -15,8 +15,8 @@ class TransactionFactory extends Factory
      */
     public function definition()
     {
-        $fromWalletID = rand(1, 5);
-        $toWalletID = rand(1, 5);
+        $fromWalletID = rand(2, 6);
+        $toWalletID = rand(2, 6);
 
         // $status = [Transaction::STATUS_PENDING, Transaction::STATUS_COMPLETED, Transaction::STATUS_FAILED, TRANSACTION::STATUS_REJECTED];
         // $type = [Transaction::TYPE_REQUEST_MONEY, Transaction::TYPE_SEND_MONEY, Transaction::TYPE_REWARD];

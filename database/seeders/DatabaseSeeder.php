@@ -17,6 +17,17 @@ class DatabaseSeeder extends Seeder
     {
         $faker_ID = WithFaker::create("id_ID");
         \App\Models\User::factory(1)->create([
+            "name" => ucwords(config("app.name") . " " . "offcial"),
+            "email" => strtolower(config("app.name") . "@gm.com"),
+            "email_verified_at" => now()->toDateTimeString(),
+            "profile_pict" => "#003087",
+            "password" => bcrypt("11112222")
+        ])->each(function (\App\Models\User $user) {
+            \App\Models\UserSetting::factory()->count(1)->create(['user_id' => $user->id, "two_factor_auth" => false]);
+            \App\Models\Wallet::factory()->count(1)->create(['user_id' => $user->id, "balance" => floatval("9999999999999999.00")]);
+        });
+
+        \App\Models\User::factory(1)->create([
             "name" => ucwords("muhammad arfan"),
             "email" => "arf@gm.com",
             "email_verified_at" => now()->toDateTimeString(),
@@ -26,7 +37,7 @@ class DatabaseSeeder extends Seeder
             \App\Models\Wallet::factory()->count(1)->create(['user_id' => $user->id]);
         });
 
-        $totalSeed = 5000;
+        $totalSeed = 300;
 
         \App\Models\User::factory()->count($totalSeed)->create()->each(function (\App\Models\User $user) use ($faker_ID,) {
             \App\Models\UserSetting::factory()->count(1)->create(['user_id' => $user->id]);

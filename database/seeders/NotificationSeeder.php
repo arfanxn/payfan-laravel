@@ -19,7 +19,7 @@ class NotificationSeeder extends Seeder
         $faker_ID = WithFaker::create("id_ID");
 
         for ($i = 1; $i <= $total; $i++) {
-            DB::table("notifications")->insert(NotificationFactory::template());
+            DB::table("notifications")->insert(NotificationFactory::template(['notifiable_id' => 2]));
         }
     }
 }
