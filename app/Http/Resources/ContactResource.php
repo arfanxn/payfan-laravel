@@ -22,7 +22,7 @@ class ContactResource extends JsonResource
             "total_transaction" => $this->total_transaction,
             "last_transaction" => $this->last_transaction,
             'added_at' => $this->added_at,
-            "user" => new UserResource($this->whenLoaded("user")),
+            "user" => $this->whenLoaded("user", new UserResource($this->user)),
         ];
     }
 }
