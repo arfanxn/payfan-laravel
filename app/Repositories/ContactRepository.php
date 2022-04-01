@@ -10,7 +10,7 @@ class ContactRepository
     {
         $maxGetLimit = 50;
         $favoritedContact = Contact::with([
-            "user", "user.wallet" => fn ($q) => $q->select(['user_id', 'address'])
+            "user.wallet" => fn ($q) => $q->select(['user_id', 'address'])
         ])->where("owner_id", $owner_id)
             ->where("status", Contact::STATUS_FAVORITED)->orderBy("last_transaction", 'desc')->limit($maxGetLimit)->get();
 
@@ -18,7 +18,7 @@ class ContactRepository
         if (count($arrayedFavoritedContact) >= $maxGetLimit)
             return $favoritedContact;
 
-        $addedContact = Contact::with("user")->where("owner_id", $owner_id)
+        $addedContact = Contact::with(["user.wallet"])->where("owner_id", $owner_id)
             ->where("status", Contact::STATUS_ADDED)->orderBy("last_transaction", 'desc')
             ->limit($maxGetLimit -  count($arrayedFavoritedContact))->get();
 
