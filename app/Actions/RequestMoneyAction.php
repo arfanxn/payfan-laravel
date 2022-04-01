@@ -22,9 +22,9 @@ class RequestMoneyAction extends TransactionActionAbstract
             $toWallet = $this->toWallet;
             $fromWallet = $this->fromWallet;
 
-            // if the user send to the same wallet, let say wallet-id-1 send to wallet-id-1 ,throw an error.
+            // if the user requesting to the same wallet, let say wallet-id-1 requeesting to wallet-id-1 ,throw an error.
             if ($fromWallet ==  $toWallet)
-                throw new TransactionException("Can't  request to the same Wallet!");
+                throw new TransactionException("Can't request to the same Wallet!");
             // end
 
             // minumum request must be at least "$0.10"
@@ -37,6 +37,15 @@ class RequestMoneyAction extends TransactionActionAbstract
 
             $now = now();
             $transactionID = strtoupper(StrHelper::random(14)) . $now->timestamp;
+            Transaction::create([
+                "id" => $transactionID,
+                "from_wallet" => $fromWalletData->id,
+                "to_wallet" => $toWalletData->id,
+                "amount" => $amount,
+                "charge" => $charge,
+                "status" => Transaction::STATUS_PENDING,
+                "created_at" => $now->toDateTimeString(),
+            ]);
             $requesterOrder = [ // create a new order for requester money/payment account
                 "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
                 "user_id" => $fromWalletData->user_id,
@@ -46,14 +55,16 @@ class RequestMoneyAction extends TransactionActionAbstract
                 "note" => $note,
                 "type" => Order::TYPE_REQUESTING_MONEY,
                 "status" => Order::STATUS_PENDING,
+                "charge" => $charge,
                 "amount" => $amount,
                 "started_at" => $now->toDateTimeString(),
                 "completed_at" => null,
                 "updated_at" => null,
             ];
+
             Order::insert([
                 $requesterOrder,
-                [   // create a new order for  account that being requested request money
+                [   // create a new order for  account that being requested money
                     "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
                     "user_id" => $toWalletData->user_id,
                     "from_wallet" => $fromWalletData->id,
@@ -69,15 +80,7 @@ class RequestMoneyAction extends TransactionActionAbstract
                     "updated_at" => null,
                 ]
             ]);
-            Transaction::create([
-                "id" => $transactionID,
-                "from_wallet" => $fromWalletData->id,
-                "to_wallet" => $toWalletData->id,
-                "amount" => $amount,
-                "charge" => $charge,
-                "status" => Transaction::STATUS_PENDING,
-                "created_at" => $now->toDateTimeString(),
-            ]); // end
+            // end
 
             DB::commit();
             return $requesterOrder;
@@ -137,7 +140,35 @@ class RequestMoneyAction extends TransactionActionAbstract
             Transaction::where(fn ($q) => $q->where("id", $order->transaction_id))
                 ->update([
                     "status" => Transaction::STATUS_COMPLETED,
-                    // "completed_at" => $completedAt
+                ]);
+            // end
+
+            DB::commit();
+            return $order; // return the updated order object 
+        } catch (\Exception | \Throwable $e) {
+            DB::rollBack();
+            return $e;
+        }
+    }
+
+    public static function reject(Order  $order)
+    {
+        try {
+            DB::beginTransaction();
+
+            // update the order model object 
+            $order->status = Order::STATUS_REJECTED;
+            // update the order databases 
+            Order::where(fn ($q) => $q
+                ->where('transaction_id', $order->transaction_id)  /**/)
+                ->update([
+                    "status" => Order::STATUS_REJECTED,
+                ]);
+            // end 
+            // update the transaction status 
+            Transaction::where(fn ($q) => $q->where("id", $order->transaction_id))
+                ->update([
+                    "status" => Transaction::STATUS_REJECTED,
                 ]);
             // end
 

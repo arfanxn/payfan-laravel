@@ -27,12 +27,11 @@ class RequestMoneyController extends Controller
             "amount" => "required|numeric|between:" . Transaction::MINIMUM_AMOUNT . ","  . Transaction::MAXIMUM_AMOUNT,
             "to_wallet" => "required|min:16",
         ]);
+        if ($validator->fails()) return response()->json($validator->errors()->messages(), 422);
 
         $amount = floatval($validator->validated()['amount']);
         $note = $validator->validated()['note']  ?? "";
         $toWalletAddress = $validator->validated()['to_wallet'];
-
-        if ($validator->fails()) return response()->json($validator->errors()->messages(), 422);
 
         $requestMoneyData = $requestMoney->setFromWallet(Auth::user()->wallet)->setToWallet($toWalletAddress)
             ->setAmount($amount)->setNote($note)->make();
@@ -64,25 +63,46 @@ class RequestMoneyController extends Controller
         ]);
         if ($validator->fails()) return response()->json($validator->errors()->messages(), 422);
 
-        $charge = floatval($validator->validated()['charge']) ?? 0;
+        $charge = floatval($validator->validated()['charge'] ?? 0);
 
-
-        $approvedReqMoney = RequestMoneyAction::approve($order, $charge);
+        $approvedReqMoneyData = RequestMoneyAction::approve($order, $charge);
 
         // if the operations was failed
-        if ($approvedReqMoney instanceof \Exception) {
-            if ($approvedReqMoney instanceof \App\Exceptions\TransactionException)
-                return response()->json(['error_message' => $approvedReqMoney->getMessage()], 300);
+        if ($approvedReqMoneyData instanceof \Exception) {
+            if ($approvedReqMoneyData instanceof \App\Exceptions\TransactionException)
+                return response()->json(['error_message' => $approvedReqMoneyData->getMessage()], 300);
 
             return app()->environment(['local', "debug", "debugging"]) ?
-                response()->json(['error_message' => $approvedReqMoney->getMessage()], 500)
+                response()->json(['error_message' => $approvedReqMoneyData->getMessage()], 500)
                 : ErrorsResponse::server();
         }
 
-        return $approvedReqMoney ?
+        return $approvedReqMoneyData ?
             response()->json([
-                'message' => "Requested Money or Payment has been approved.",
-                "invoice" => $approvedReqMoney
+                'message' => "Requested Money or Payment has been approved successfully.",
+                "invoice" => $approvedReqMoneyData
+            ])
+            : ErrorsResponse::server();
+    }
+
+    public function reject(Request $request, Order $order)
+    {
+        $rejectedReqMoneyData = RequestMoneyAction::reject($order);
+
+        // if the operations was failed
+        if ($rejectedReqMoneyData instanceof \Exception) {
+            if ($rejectedReqMoneyData instanceof \App\Exceptions\TransactionException)
+                return response()->json(['error_message' => $rejectedReqMoneyData->getMessage()], 300);
+
+            return app()->environment(['local', "debug", "debugging"]) ?
+                response()->json(['error_message' => $rejectedReqMoneyData->getMessage()], 500)
+                : ErrorsResponse::server();
+        }
+
+        return $rejectedReqMoneyData ?
+            response()->json([
+                'message' => "Requested Money or Payment has been rejected successfully.",
+                "invoice" => $rejectedReqMoneyData
             ])
             : ErrorsResponse::server();
     }
