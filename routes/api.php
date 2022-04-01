@@ -96,7 +96,7 @@ Route::prefix("user")->middleware("api")->group(function () {
                 Route::get("{contact}/toggle-favorite", [ContactController::class, "toggleFavorite"]);
                 Route::post("/add-or-rm/user/{user:id}", [ContactController::class, "addOrRemove"]);
                 Route::post("/{contact}/block", [ContactController::class, "block"]);
-        });
+            });
 
             Route::get("orders", [OrderController::class, "index"]);
             Route::get("order/{order:id}", [OrderController::class, "show"]);
@@ -107,6 +107,7 @@ Route::prefix("user")->middleware("api")->group(function () {
                     "/request-money/order/{order:id}/approve",
                     [RequestMoneyController::class, "approve"]
                 )->middleware("verification_code.verify");
+                Route::patch("/request-money/order/{order:id}/reject", [RequestMoneyController::class, "reject"]);
             });
 
             Route::prefix("notifications")->group(function () { // pluralize
