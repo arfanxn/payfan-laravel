@@ -7,7 +7,6 @@ use App\Http\Resources\TransactionCollection;
 use App\Models\Transaction;
 use App\Models\Order;
 use App\Repositories\OrderRepository;
-use App\Repositories\TransactionRepository;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;

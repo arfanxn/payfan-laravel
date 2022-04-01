@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Exceptions\Contact\ContactBlockedException;
 use App\Http\Resources\ContactResource;
 use App\Models\Contact;
+use App\Models\Order;
 use App\Models\User;
 use App\Repositories\ContactRepository;
-use App\Repositories\TransactionRepository;
 use App\Responses\ErrorsResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,9 +26,13 @@ class ContactController extends Controller
     {
         if (Gate::denies("has-contact", $contact)) return response("Forbidden", 403);
 
-        $walletFromUserFromContact = ($contact->load("user.wallet"))->user->wallet;
-        $lastTransaction = TransactionRepository::lastTransactionWith(Auth::user()->wallet, $walletFromUserFromContact)
-            ->first();
+        $contact = $contact->load("user.wallet");
+        $lastTransaction  = Order::query()->where("user_id", $contact->user->id)
+            ->where("status", Order::STATUS_COMPLETED)
+            ->where(
+                fn ($query) => $query->where("from_wallet", $contact->user->wallet->id)
+                    ->orWhere("from_wallet", $contact->user->wallet->id)
+            )->orderBy("completed_at", 'desc')->first();
 
         return response()->json(["last_transaction" => $lastTransaction]);
     }
