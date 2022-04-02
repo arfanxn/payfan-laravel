@@ -115,7 +115,7 @@ class RequestMoneyAction extends TransactionActionAbstract
 
             // check is toWallet valid/exist and balance enough for doing this transfer process
             // if exist -> subtract the toWallet balance
-            if ($toWalletData) {
+            if ($toWalletData && (floatval($toWalletData->balance) >= $amountAndCharge)) {
                 $toWalletData->decrement("balance", $amountAndCharge);
                 $toWalletData->save();
             } else throw new TransactionException("Wallet balance is not enough!");
