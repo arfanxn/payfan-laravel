@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use Illuminate\Support\Str;
 use App\Models\Order;
+use App\Models\Wallet;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 
 
@@ -15,8 +16,12 @@ class OrderRepository
 
         ['keyword' => $keyword, "start_at" => $start_at, "end_at" => $end_at, "status" => $status, "type" => $type] = $options;
         if ($keyword) {
-            $orderQuery  = $orderQuery->where(fn ($q)
-            => $q->where("id", "LIKE", "$keyword%")->orWhere("note", "LIKE", "$keyword%"))->orWhere("amount", "LIKE", "$keyword%");
+            $orderQuery  = $orderQuery->where(
+                fn ($q) => $q->where("id", "LIKE", "$keyword%")
+                    ->orWhere("transaction_id", "LIKE", "$keyword%")
+                    ->orWhere("note", "LIKE", "$keyword%")
+                    ->orWhere("amount", "LIKE", "$keyword%")
+            );
         }
         if ($start_at) {
             $orderQuery = $orderQuery->where("started_at", ">=", $start_at);
@@ -63,5 +68,16 @@ class OrderRepository
         }
 
         return $orderQuery;
+    }
+
+    public static function latestWith(Wallet $wallet1, Wallet $wallet2)
+    {
+        $lastTransaction = Order::query()->where(
+            fn ($query) => $query->where("from_wallet", $wallet1->id)->orWhere("from_wallet", $wallet2->id)
+        )->where(
+            fn ($query) => $query->where("to_wallet", $wallet1->id)->orWhere("to_wallet", $wallet2->id)
+        )->orderBy("updated_at", 'desc');
+
+        return $lastTransaction;
     }
 }
