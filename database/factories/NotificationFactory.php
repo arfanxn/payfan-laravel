@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Helpers\URLHelper;
 use Faker\Factory as WithFaker;
 use App\Models\Notification;
 use App\Models\User;
@@ -30,9 +31,12 @@ class NotificationFactory extends Factory
             "notifiable_type" => \App\Models\User::class,
             "notifiable_id" => 2,
             "data" => json_encode([
-                "text" => $faker_ID->sentences(rand(1, 3), true),
-                "action" => rand(0, 1) ? "Transaction Details" : null,
-                "link" => $faker_ID->url(),
+                "header" => $faker_ID->sentence(),
+                "body" => $faker_ID->sentence(rand(2, 4), true),
+                "action" => [
+                    "text" => "Invoice",
+                    "url" => URLHelper::frontendWeb("activity?keyword=" . 123123123),
+                ],
             ]),
             "read_at" =>  rand(0, 1) ? now()->toDateTimeString() : null,
             "created_at" =>  now()->toDateTimeString(),
