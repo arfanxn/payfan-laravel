@@ -103,8 +103,6 @@ class UserController extends Controller
         $authUserName = Auth::user()->name;
         $fileName = now()->timestamp . StrHelper::random(strlen($authUserName), $authUserName) . "."  . $request->file("profile_pict")->extension();
 
-        Log::info($request->file("profile_pict"));
-
         $storingToStorage = $request->file("profile_pict")->storeAs("public/images/user/profile_pict", $fileName);
 
         $updateTheUser =  User::where("id", Auth::id())->update([
