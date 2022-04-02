@@ -51,7 +51,7 @@ class OrderController extends Controller
             ->get();
 
         $ordersGrouped  = $orders->groupBy(
-            fn (\App\Models\Order $order) => \Carbon\Carbon::parse($order->created_at)->format('Y-m'),
+            fn (\App\Models\Order $order) => \Carbon\Carbon::parse($order->started_at)->format('Y-m'),
         );
 
         $ordersPaginator = (new \Illuminate\Pagination\Paginator(

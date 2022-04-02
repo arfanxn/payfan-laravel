@@ -132,3 +132,10 @@ Route::post("test", function (Request  $request) {
 
     return \App\Models\User::limit(1)->first();
 });
+
+Route::get("test/preview/mail-notification/", function (Request  $request) {
+    $user = \App\Models\User::limit(1)->first();
+
+    $message = (new \App\Notifications\SendMoneyNotification($user))->toMail('arf@gm.com');
+    return $message->render();
+});
