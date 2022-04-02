@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Notifications\VerificationCodeNotification;
 use App\Responses\VerificationCodeResponse;
 use App\Services\VerificationCodeService;
 use Illuminate\Support\Facades\Cookie;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use App\Services\JWTService;
+use Illuminate\Support\Facades\Notification;
 
 class AuthController extends Controller
 {
@@ -148,21 +150,21 @@ class AuthController extends Controller
         $validator = Validator::make($request->only("email"), [
             "email" =>  [Rule::requiredIf(!Cookie::has("jwt"))]
         ]);
-
         if ($validator->fails()) return response($validator->errors()->messages(), 422);
 
-        $email = $validator->validated()["email"] ??  null;
+        $user = new User;
 
         if (Cookie::has("jwt") && !$validator->validated()["email"]) {
             $jwtPayl = JWTService::getPayload();
-            $email = User::where("id", $jwtPayl->sub)
-                ->first()->email;
+            $user = User::where("id", $jwtPayl->sub)->first();
+        } else if ($validator->validated()["email"] /**/) {
+            $user  = User::where("id", $validator->validated()["email"])->first();;
         }
 
         $verificationCode = VerificationCodeService::generate(6);
-        $hashedCode = VerificationCodeService::createHash($email, $verificationCode, 30);
+        $hashedCode = VerificationCodeService::createHash($user->email, $verificationCode, 30);
 
-        Log::info("verification_code for email : $email is $verificationCode");
+        Notification::send($user, new VerificationCodeNotification($verificationCode));
 
         return response()->json()->withCookie(cookie("hashed_code", $hashedCode, 30));
     }
