@@ -18,6 +18,16 @@ class Contact extends Model
         "total_transaction", 'last_transaction', 'added_at'
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'last_transaction' => 'datetime',
+        "added_at" => 'datetime',
+    ];
+
     public function getRouteKey()
     {
         return "id";
