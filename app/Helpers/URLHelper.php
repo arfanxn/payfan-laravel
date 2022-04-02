@@ -25,4 +25,10 @@ class URLHelper
 
         return asset(Storage::url($path . $profile_pict_filename));
     }
+
+    public static function frontendWeb(string $url = '')
+    {
+        $url = preg_replace("/^\//", "",  $url);
+        return "http://localhost:8081/" . $url;
+    }
 }
