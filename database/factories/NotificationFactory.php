@@ -31,8 +31,8 @@ class NotificationFactory extends Factory
             "notifiable_type" => \App\Models\User::class,
             "notifiable_id" => 2,
             "data" => json_encode([
-                "header" => $faker_ID->sentence(),
-                "body" => $faker_ID->sentence(rand(2, 4), true),
+                "header" => $faker_ID->sentence(1, true),
+                "body" => $faker_ID->sentences(rand(2, 4), true),
                 "action" => [
                     "text" => "Invoice",
                     "url" => URLHelper::frontendWeb("activity?keyword=" . 123123123),
