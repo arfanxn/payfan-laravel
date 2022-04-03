@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
             \App\Models\Wallet::factory()->count(1)->create(['user_id' => $user->id]);
         });
 
-        $totalSeed = 300;
+        $totalSeed = 5000;
 
         \App\Models\User::factory()->count($totalSeed)->create()->each(function (\App\Models\User $user) use ($faker_ID,) {
             \App\Models\UserSetting::factory()->count(1)->create(['user_id' => $user->id]);

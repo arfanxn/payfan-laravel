@@ -67,7 +67,8 @@ class RejectingRequestMoneyNotification extends Notification
             ->line('Order ID : ' . $this->order->id)
             ->line('Transaction ID : ' . $this->order->transaction_id)
             ->action('View Rejected Request', URLHelper::frontendWeb("/activity?keyword=" . $this->order->id))
-            ->line('Thank you for using our application!');
+            ->line('Thank you for using our application!')
+            ->error();
     }
 
     /**
