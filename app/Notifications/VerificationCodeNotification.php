@@ -46,11 +46,11 @@ class VerificationCodeNotification extends Notification
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject(config("app.name") . " Verification Code")
+            ->subject("Verification Code | " . config("app.name"))
             ->greeting("Hello, $notifiable->name .")
             ->line("Your verification code for verifying " . $this->verificationReason . " is.")
             ->line('Verification Code : ' . $this->verificationCode)
-            ->line('Expire at : ' . now()->addMinutes(30)->format("M d D - H:i"))
+            ->line('Expire at : ' . now()->addMinutes(30)->format("M d D - H:i") . " UTC")
             ->line("Don't let anyone know your verification code.");
     }
 
