@@ -153,8 +153,7 @@ class RequestMoneyAction extends TransactionActionAbstract
                         "completed_at" => $completedAt
                     ]);
                     // get where clause user_id not equal to order->user_id
-                    return $userQuery->where("user_id", "!=", $order->user_id)
-                        ->first();
+                    return $userQuery->where("user_id", "!=", $order->user_id);
                 }
             );
             // end
@@ -166,6 +165,7 @@ class RequestMoneyAction extends TransactionActionAbstract
                 ]);
             // end
 
+            $approvedOrder = $approvedOrder->first();
             DB::commit();
 
             Notification::send(
@@ -192,16 +192,18 @@ class RequestMoneyAction extends TransactionActionAbstract
             // update the order model object 
             $order->status = Order::STATUS_REJECTED;
             // update the order databases 
-            $rejectedOrder = tap(Order::where(fn ($q) => $q
-                ->where('transaction_id', $order->transaction_id)  /**/), function ($userQuery) use ($order) {
-                // update 2 related order 
-                $userQuery->update([
-                    "status" => Order::STATUS_REJECTED,
-                ]);
-                // get where clause user_id not equal to order->user_id
-                return $userQuery->where("user_id", "!=", $order->user_id)
-                    ->first();
-            });
+            $rejectedOrder = tap(
+                Order::where(fn ($q) => $q
+                    ->where('transaction_id', $order->transaction_id)  /**/),
+                function ($userQuery) use ($order) {
+                    // update 2 related order 
+                    $userQuery->update([
+                        "status" => Order::STATUS_REJECTED,
+                    ]);
+                    // get where clause user_id not equal to order->user_id
+                    return ($userQuery->where("user_id", "!=", $order->user_id));
+                }
+            );
             // end 
 
             // update the transaction status 
@@ -210,6 +212,9 @@ class RequestMoneyAction extends TransactionActionAbstract
                     "status" => Transaction::STATUS_REJECTED,
                 ]);
             // end
+
+            $rejectedOrder = $rejectedOrder->first();
+            DB::commit();
 
             Notification::send(
                 User::query()->where("id", $order->user_id)->first(),
@@ -220,7 +225,6 @@ class RequestMoneyAction extends TransactionActionAbstract
                 new RejectedRequestMoneyNotification($rejectedOrder)
             );
 
-            DB::commit();
             return $order; // return the updated order object 
         } catch (\Exception | \Throwable $e) {
             DB::rollBack();
