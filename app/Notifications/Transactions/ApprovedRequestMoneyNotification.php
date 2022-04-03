@@ -66,7 +66,7 @@ class ApprovedRequestMoneyNotification extends Notification
             ->line('Approved at : ' . Carbon::parse($this->order->completed_at)->toDateTimeString() . " UTC")
             ->line('Order ID : ' . $this->order->id)
             ->line('Transaction ID : ' . $this->order->transaction_id)
-            ->action('View Pending Request', URLHelper::frontendWeb("/activity?keyword=" . $this->order->id))
+            ->action('View Approved Request', URLHelper::frontendWeb("/activity?keyword=" . $this->order->id))
             ->line('Thank you for using our application!');
     }
 
