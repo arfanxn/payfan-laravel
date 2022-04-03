@@ -92,11 +92,11 @@ class RequestMoneyAction extends TransactionActionAbstract
 
             Notification::send(
                 User::find($requestingOrder['user_id'])->first(),
-                new MakeRequestingMoneyNotification($requestingOrder)
+                new MakeRequestingMoneyNotification(new Order($requestingOrder))
             );
             Notification::send(
                 User::find($requestedOrder['user_id'])->first()  /**/,
-                new NewRequestedMoneyNotification($requestedOrder)
+                new NewRequestedMoneyNotification(new Order($requestedOrder))
             );
 
             return $requestingOrder;
