@@ -4,12 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Actions\SendMoneyAction;
 use App\Models\Transaction;
-use App\Notifications\SendMoneyNotification;
 use App\Responses\ErrorsResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Notification;
 
 class SendMoneyController extends Controller
 {
@@ -39,8 +37,6 @@ class SendMoneyController extends Controller
                 response()->json(['error_message' => $sendMoneyData->getMessage()], 500)
                 : ErrorsResponse::server();
         }
-
-        Notification::send(Auth::user(), new SendMoneyNotification(new \App\Models\Order($sendMoneyData)));
 
         return $sendMoneyData ?
             response()->json(['message' => "Send money successfully.", "invoice" => $sendMoneyData])

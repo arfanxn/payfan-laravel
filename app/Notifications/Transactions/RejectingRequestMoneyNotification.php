@@ -1,26 +1,24 @@
 <?php
 
-namespace App\Notifications;
+namespace App\Notifications\Transactions;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewRequestedMoneyNotification extends Notification
+class RejectingRequestMoneyNotification extends Notification
 {
     use Queueable;
-
-    public $transaction;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($transaction)
+    public function __construct()
     {
-        $this->transaction = $transaction;
+        //
     }
 
     /**
@@ -43,9 +41,9 @@ class NewRequestedMoneyNotification extends Notification
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
+                    ->line('The introduction to the notification.')
+                    ->action('Notification Action', url('/'))
+                    ->line('Thank you for using our application!');
     }
 
     /**
@@ -56,6 +54,8 @@ class NewRequestedMoneyNotification extends Notification
      */
     public function toArray($notifiable)
     {
-        return array_merge($this->transaction, []);
+        return [
+            //
+        ];
     }
 }

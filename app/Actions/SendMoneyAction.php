@@ -6,10 +6,15 @@ use App\Exceptions\TransactionException;
 use App\Helpers\StrHelper;
 use App\Models\Order;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Models\Wallet;
+use App\Notifications\Transactions\ReceivingMoneyNotification;
+use App\Notifications\Transactions\SendMoneyNotification;
 use Exception;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 class SendMoneyAction extends TransactionActionAbstract
 {
@@ -88,26 +93,38 @@ class SendMoneyAction extends TransactionActionAbstract
                 "completed_at" => $now->toDateTimeString(),
                 "updated_at" => null,
             ];
+            $receiverOrder = [
+                "id" => strtoupper(StrHelper::random(14)) . $now->timestamp,
+                "user_id" => $toWalletData->user_id,
+                "from_wallet" => $fromWalletData->id,
+                "to_wallet" => $toWalletData->id,
+                "transaction_id" => $transactionID,
+                "note" => $note,
+                "type" => Order::TYPE_RECEIVING_MONEY,
+                "status" => Order::STATUS_COMPLETED,
+                "amount" => $amount,
+                "charge" => 0,
+                "started_at" => $now->toDateTimeString(),
+                "completed_at" => $now->toDateTimeString(),
+                "updated_at" => null,
+            ];
+
             Order::insert([
                 $senderOrder /*create a new order for sender account*/,
-                [    // create a new order for receiver account
-                    "id" => strtoupper(StrHelper::random(14)) . $now->timestamp,
-                    "user_id" => $toWalletData->user_id,
-                    "from_wallet" => $fromWalletData->id,
-                    "to_wallet" => $toWalletData->id,
-                    "transaction_id" => $transactionID,
-                    "note" => $note,
-                    "type" => Order::TYPE_RECEIVING_MONEY,
-                    "status" => Order::STATUS_COMPLETED,
-                    "amount" => $amount,
-                    "charge" => 0,
-                    "started_at" => $now->toDateTimeString(),
-                    "completed_at" => $now->toDateTimeString(),
-                    "updated_at" => null,
-                ]
+                $receiverOrder // create a new order for receiver account 
             ]);
 
             DB::commit();
+
+            Notification::send(
+                User::find($senderOrder['user_id'])->first(),
+                new SendMoneyNotification(new \App\Models\Order($senderOrder))
+            );
+            Notification::send(
+                User::find($receiverOrder['user_id'])->first(),
+                new ReceivingMoneyNotification(new \App\Models\Order($senderOrder))
+            );
+
             return $senderOrder;
         } catch (\Exception | \Throwable $e) {
             DB::rollBack();

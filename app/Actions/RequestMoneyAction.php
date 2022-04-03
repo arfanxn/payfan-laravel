@@ -6,9 +6,17 @@ use App\Exceptions\TransactionException;
 use App\Helpers\StrHelper;
 use App\Models\Order;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Models\Wallet;
+use App\Notifications\Transactions\ApprovedRequestMoneyNotification;
+use App\Notifications\Transactions\ApprovingRequestMoneyNotification;
+use App\Notifications\Transactions\MakeRequestingMoneyNotification;
+use App\Notifications\Transactions\NewRequestedMoneyNotification;
+use App\Notifications\Transactions\RejectedRequestMoneyNotification;
+use App\Notifications\Transactions\RejectingRequestMoneyNotification;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 class RequestMoneyAction extends TransactionActionAbstract
 {
@@ -46,7 +54,7 @@ class RequestMoneyAction extends TransactionActionAbstract
                 "status" => Transaction::STATUS_PENDING,
                 "created_at" => $now->toDateTimeString(),
             ]);
-            $requesterOrder = [ // create a new order for requester money/payment account
+            $requestingOrder = [ // create a new order for requester money/payment account
                 "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
                 "user_id" => $fromWalletData->user_id,
                 "from_wallet" => $fromWalletData->id,
@@ -61,29 +69,37 @@ class RequestMoneyAction extends TransactionActionAbstract
                 "completed_at" => null,
                 "updated_at" => null,
             ];
+            $requestedOrder = [ // create a new order for  account that being requested money
+                "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
+                "user_id" => $toWalletData->user_id,
+                "from_wallet" => $fromWalletData->id,
+                "to_wallet" => $toWalletData->id,
+                "transaction_id" => $transactionID,
+                "note" => $note,
+                "type" => Order::TYPE_REQUESTED_MONEY,
+                "status" => Order::STATUS_PENDING,
+                "amount" => $amount,
+                "charge" => $charge,
+                "started_at" => $now->toDateTimeString(),
+                "completed_at" => null,
+                "updated_at" => null,
+            ];
 
-            Order::insert([
-                $requesterOrder,
-                [   // create a new order for  account that being requested money
-                    "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
-                    "user_id" => $toWalletData->user_id,
-                    "from_wallet" => $fromWalletData->id,
-                    "to_wallet" => $toWalletData->id,
-                    "transaction_id" => $transactionID,
-                    "note" => $note,
-                    "type" => Order::TYPE_REQUESTED_MONEY,
-                    "status" => Order::STATUS_PENDING,
-                    "amount" => $amount,
-                    "charge" => $charge,
-                    "started_at" => $now->toDateTimeString(),
-                    "completed_at" => null,
-                    "updated_at" => null,
-                ]
-            ]);
+            Order::insert([$requestingOrder, $requestedOrder]);
             // end
 
             DB::commit();
-            return $requesterOrder;
+
+            Notification::send(
+                User::find($requestingOrder['user_id'])->first(),
+                new MakeRequestingMoneyNotification($requestingOrder)
+            );
+            Notification::send(
+                User::find($requestedOrder['user_id'])->first()  /**/,
+                new NewRequestedMoneyNotification($requestedOrder)
+            );
+
+            return $requestingOrder;
         } catch (\Exception | \Throwable $e) {
             DB::rollBack();
             return $e;
@@ -126,15 +142,22 @@ class RequestMoneyAction extends TransactionActionAbstract
             // update the order model object 
             $order->status = Order::STATUS_COMPLETED;
             $order->completed_at = $completedAt;
-            // update the order databases 
-            Order::where(fn ($q) => $q
-                // ->where("user_id", "!=", $order->user_id)
-                ->where('transaction_id', $order->transaction_id)  /**/)
-                ->update([
-                    "status" => Order::STATUS_COMPLETED,
-                    "completed_at" => $completedAt
-                ]);
-            // end 
+            // update the order databases and get 
+            $approvedOrder = tap(
+                Order::where(fn ($q) => $q
+                    ->where('transaction_id', $order->transaction_id)  /**/),
+                function ($userQuery)  use ($completedAt, $order) {
+                    // update 2 related order 
+                    $userQuery->update([
+                        "status" => Order::STATUS_COMPLETED,
+                        "completed_at" => $completedAt
+                    ]);
+                    // get where clause user_id not equal to order->user_id
+                    return $userQuery->where("user_id", "!=", $order->user_id)
+                        ->first();
+                }
+            );
+            // end
 
             // update the transaction status 
             Transaction::where(fn ($q) => $q->where("id", $order->transaction_id))
@@ -144,6 +167,16 @@ class RequestMoneyAction extends TransactionActionAbstract
             // end
 
             DB::commit();
+
+            Notification::send(
+                User::find($order->user_id)->first()  /**/,
+                new ApprovingRequestMoneyNotification($order)
+            );
+            Notification::send(
+                User::find($approvedOrder->user_id)->first(),
+                new ApprovedRequestMoneyNotification($approvedOrder)
+            );
+
             return $order; // return the updated order object 
         } catch (\Exception | \Throwable $e) {
             DB::rollBack();
@@ -159,18 +192,33 @@ class RequestMoneyAction extends TransactionActionAbstract
             // update the order model object 
             $order->status = Order::STATUS_REJECTED;
             // update the order databases 
-            Order::where(fn ($q) => $q
-                ->where('transaction_id', $order->transaction_id)  /**/)
-                ->update([
+            $rejectedOrder = tap(Order::where(fn ($q) => $q
+                ->where('transaction_id', $order->transaction_id)  /**/), function ($userQuery) use ($order) {
+                // update 2 related order 
+                $userQuery->update([
                     "status" => Order::STATUS_REJECTED,
                 ]);
+                // get where clause user_id not equal to order->user_id
+                return $userQuery->where("user_id", "!=", $order->user_id)
+                    ->first();
+            });
             // end 
+
             // update the transaction status 
             Transaction::where(fn ($q) => $q->where("id", $order->transaction_id))
                 ->update([
                     "status" => Transaction::STATUS_REJECTED,
                 ]);
             // end
+
+            Notification::send(
+                User::find($order->user_id)->first(),
+                new RejectingRequestMoneyNotification($order)
+            );
+            Notification::send(
+                User::find($rejectedOrder->user_id)->first()  /**/,
+                new RejectedRequestMoneyNotification($rejectedOrder)
+            );
 
             DB::commit();
             return $order; // return the updated order object 

@@ -127,15 +127,35 @@ Route::get("users-and-contacts/search", [SearchPeopleController::class, "searchE
 
 
 
-Route::post("test", function (Request  $request) {
-    // return   Illuminate\Support\Str::contains(\App\Models\Order::TYPE_GIFT_FROM(),   strtoupper("payfan gift"));
+Route::prefix("test")->group(function () {
+    Route::get("", function (Request  $request) {
+        // return \App\Models\User::limit(1)->first();
+        $user = \App\Models\User::offset(1)->limit(1)->first();
+        $orderSendMoney = \App\Models\Order::query()->where(
+            fn ($q) =>
+            $q->where("type", \App\Models\Order::TYPE_SENDING_MONEY)
+                ->where("status", "COMPLETED")
+        )->orderBy("started_at", "desc")->first();
 
-    return \App\Models\User::limit(1)->first();
-});
+        $isSent = \Illuminate\Support\Facades\Notification::send(
+            $user,
+            new \App\Notifications\Transactions\SendMoneyNotification($orderSendMoney)
+        );
 
-Route::get("test/preview/mail-notification/", function (Request  $request) {
-    $user = \App\Models\User::limit(1)->first();
+        return dd($isSent);
+    });
+    Route::get("preview/mail-notification/", function (Request  $request) {
+        $user = \App\Models\User::offset(1)->limit(1)->first();
+        $orderSendMoney = \App\Models\Order::query()->where(
+            fn ($q) =>
+            $q->where("type", \App\Models\Order::TYPE_SENDING_MONEY)
+                ->where("status", "COMPLETED")
+        )->orderBy("started_at", "desc")->first();
 
-    $message = (new \App\Notifications\SendMoneyNotification($user))->toMail('arf@gm.com');
-    return $message->render();
+        // $notification = (new \App\Notifications\SendMoneyNotification($orderSendMoney))->toMail($user);
+        // return $notification->render();
+
+        $notification = (new \App\Notifications\VerificationCodeNotification(112233, "Login"))->toMail($user);
+        return $notification->render();
+    });
 });

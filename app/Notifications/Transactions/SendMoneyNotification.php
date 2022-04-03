@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Notifications;
+namespace App\Notifications\Transactions;
 
 use App\Helpers\URLHelper;
 use App\Models\Order;
@@ -24,8 +24,8 @@ class SendMoneyNotification extends Notification // implements ShouldQueue
      */
     public function __construct(Order $order)
     {
-        if (!$order->relationLoaded("toWallet.user"))
-            $order = $order->load("toWallet.user");
+        if (!$order->relationLoaded("toWallet.user") || !$order->relationLoaded("fromWallet.user"))
+            $order = $order->load(["toWallet.user", "fromWallet.user"]);
 
         $this->order = $order;
     }
@@ -57,8 +57,8 @@ class SendMoneyNotification extends Notification // implements ShouldQueue
                 . substr($this->order->toWallet->user->name, 0, 10)  . '" successfully | ' . config('app.name'))
             ->greeting("Hello, $notifiable->name .")
             ->line('Your transaction to "' . $this->order->toWallet->user->name . '" successfully.')
-            ->line('Sender : ' . $this->order->fromWallet->user->name)
-            ->line('Receiver : ' . $this->order->toWallet->user->name)
+            ->line('Sender name : ' . $this->order->fromWallet->user->name)
+            ->line('Receiver name : ' . $this->order->toWallet->user->name)
             ->line('Amount : ' . $this->order->amount . " $")
             ->line('Charge : ' . $this->order->charge . " $")
             ->line('Total : ' . $total)

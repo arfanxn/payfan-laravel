@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Actions\RequestMoneyAction;
 use App\Models\Order;
 use App\Models\Transaction;
-use App\Notifications\MakeRequestingMoneyNotification;
 use App\Responses\ErrorsResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -45,8 +44,6 @@ class RequestMoneyController extends Controller
                 response()->json(['error_message' => $requestMoneyData->getMessage()], 500)
                 : ErrorsResponse::server();
         }
-
-        Notification::send(Auth::user(), new MakeRequestingMoneyNotification($requestMoneyData));
 
         return $requestMoneyData ?
             response()->json([
