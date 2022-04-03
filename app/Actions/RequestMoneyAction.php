@@ -91,11 +91,11 @@ class RequestMoneyAction extends TransactionActionAbstract
             DB::commit();
 
             Notification::send(
-                User::find($requestingOrder['user_id'])->first(),
+                User::query()->where("id", $requestingOrder['user_id'])->first(),
                 new MakeRequestingMoneyNotification(new Order($requestingOrder))
             );
             Notification::send(
-                User::find($requestedOrder['user_id'])->first()  /**/,
+                User::query()->where("id", $requestedOrder['user_id'])->first()  /**/,
                 new NewRequestedMoneyNotification(new Order($requestedOrder))
             );
 
@@ -169,11 +169,11 @@ class RequestMoneyAction extends TransactionActionAbstract
             DB::commit();
 
             Notification::send(
-                User::find($order->user_id)->first()  /**/,
+                User::query()->where("id", $order->user_id)->first()  /**/,
                 new ApprovingRequestMoneyNotification($order)
             );
             Notification::send(
-                User::find($approvedOrder->user_id)->first(),
+                User::query()->where("id", $approvedOrder->user_id)->first(),
                 new ApprovedRequestMoneyNotification($approvedOrder)
             );
 
@@ -212,11 +212,11 @@ class RequestMoneyAction extends TransactionActionAbstract
             // end
 
             Notification::send(
-                User::find($order->user_id)->first(),
+                User::query()->where("id", $order->user_id)->first(),
                 new RejectingRequestMoneyNotification($order)
             );
             Notification::send(
-                User::find($rejectedOrder->user_id)->first()  /**/,
+                User::query()->where("id", $rejectedOrder->user_id)->first()  /**/,
                 new RejectedRequestMoneyNotification($rejectedOrder)
             );
 

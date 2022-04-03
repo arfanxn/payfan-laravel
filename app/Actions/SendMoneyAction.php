@@ -117,11 +117,11 @@ class SendMoneyAction extends TransactionActionAbstract
             DB::commit();
 
             Notification::send(
-                User::find($senderOrder['user_id'])->first(),
+                User::where("id", $senderOrder['user_id'])->first(),
                 new SendMoneyNotification(new \App\Models\Order($senderOrder))
             );
             Notification::send(
-                User::find($receiverOrder['user_id'])->first(),
+                User::where("id", $receiverOrder['user_id'])->first(),
                 new ReceivingMoneyNotification(new \App\Models\Order($senderOrder))
             );
 
