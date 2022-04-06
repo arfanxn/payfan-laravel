@@ -1,8 +1,10 @@
 <?php
 
+use App\Repositories\NotificationRepository;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Log;
 
-/*
+/*z
 |--------------------------------------------------------------------------
 | Broadcast Channels
 |--------------------------------------------------------------------------
@@ -13,6 +15,10 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
-    return (int) $user->id === (int) $id;
+Broadcast::channel('User.{id}', function ($user, $id) {
+    return intval($user->id) === intval($id);
+});
+
+Broadcast::channel('Notification.{notifiable_id}', function ($user, $notifiable_id) {
+    return intval($user->id) === intval($notifiable_id ?? null);
 });
