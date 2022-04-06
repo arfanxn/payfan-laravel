@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\__TestController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -26,9 +27,9 @@ use Illuminate\Support\Facades\DB;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
 
 Route::prefix("validator")->group(function () {
     Route::prefix("users")->group(function () {
@@ -128,34 +129,7 @@ Route::get("users-and-contacts/search", [SearchPeopleController::class, "searchE
 
 
 Route::prefix("test")->group(function () {
-    Route::get("", function (Request  $request) {
-        // return \App\Models\User::limit(1)->first();
-        $user = \App\Models\User::offset(1)->limit(1)->first();
-        $orderSendMoney = \App\Models\Order::query()->where(
-            fn ($q) =>
-            $q->where("type", \App\Models\Order::TYPE_SENDING_MONEY)
-                ->where("status", "COMPLETED")
-        )->orderBy("started_at", "desc")->first();
-
-        $isSent = \Illuminate\Support\Facades\Notification::send(
-            $user,
-            new \App\Notifications\Transactions\SendMoneyNotification($orderSendMoney)
-        );
-
-        return dd($isSent);
-    });
-    Route::get("preview/mail-notification/", function (Request  $request) {
-        $user = \App\Models\User::offset(1)->limit(1)->first();
-        $orderSendMoney = \App\Models\Order::query()->where(
-            fn ($q) =>
-            $q->where("type", \App\Models\Order::TYPE_SENDING_MONEY)
-                ->where("status", "COMPLETED")
-        )->orderBy("started_at", "desc")->first();
-
-        // $notification = (new \App\Notifications\SendMoneyNotification($orderSendMoney))->toMail($user);
-        // return $notification->render();
-
-        $notification = (new \App\Notifications\VerificationCodeNotification(112233, "Login"))->toMail($user);
-        return $notification->render();
-    });
+    Route::get("", [__TestController::class, "index"]);
+    Route::get("preview/mail-notification/", [__TestController::class, "previewMailNotification"]);
+    Route::get("trigger/event", [__TestController::class, "triggerEvent"]);
 });
