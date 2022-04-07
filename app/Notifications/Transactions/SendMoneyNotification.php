@@ -4,16 +4,21 @@ namespace App\Notifications\Transactions;
 
 use App\Helpers\URLHelper;
 use App\Models\Order;
+use App\Traits\Notifications\HasToBroadcastNotificationTrait;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Support\Str;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Log;
 
-class SendMoneyNotification extends Notification // implements ShouldQueue
+class SendMoneyNotification extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
+    use HasToBroadcastNotificationTrait;
 
     public Order $order;
 
@@ -38,7 +43,7 @@ class SendMoneyNotification extends Notification // implements ShouldQueue
      */
     public function via($notifiable)
     {
-        return ['database', "mail"];
+        return ['database', "mail", "broadcast"];
     }
 
     /**
@@ -75,8 +80,9 @@ class SendMoneyNotification extends Notification // implements ShouldQueue
      * @param  mixed  $notifiable
      * @return array
      */
-    public function toArray($notifiable)
+    public function toDatabase($notifiable)
     {
+        Log::info("notifification id : " . $this->id);
         return [
             "header" => "Send money successfully",
             "body" =>

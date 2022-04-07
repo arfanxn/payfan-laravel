@@ -8,10 +8,10 @@ use Illuminate\Support\Facades\DB;
 
 class NotificationRepository
 {
-    private const TABLE_NAME = 'notifications';
+    private const TABLE_NAME = 'notifications', COLUMN_READ_AT = "read_at";
     private QueryBuilder $QueryBuilder;
 
-    private function __construct(QueryBuilder $builder = null)
+    private function __construct(QueryBuilder|null $builder = null)
     {
         if ($builder) {
             $this->QueryBuilder = $builder;
@@ -25,9 +25,20 @@ class NotificationRepository
         return new static();
     }
 
+    public static function decode(array|object $notification): object
+    {
+        if (is_array($notification))
+            $notification = (object) $notification; // to object
+
+        if (isset($notification->data))
+            $notification->data = json_decode($notification->data); // parse data 
+        return $notification; // return array to object  
+    }
+
     public static function find(string $notificationID): static
     {
-        $query = DB::table(self::TABLE_NAME)->where("id", $notificationID);
+        // $query = DB::table(self::TABLE_NAME)->where("id", $notificationID);
+        $query = self::make()->getBuilder()->where("id", $notificationID);
         return new static($query);
     }
 
@@ -52,13 +63,13 @@ class NotificationRepository
 
     public function where_Unread()
     {
-        $this->QueryBuilder = $this->QueryBuilder->where('read_at', null);
+        $this->QueryBuilder = $this->QueryBuilder->where(self::COLUMN_READ_AT, null);
         return $this;
     }
 
     public function where_Read()
     {
-        $this->QueryBuilder = $this->QueryBuilder->where('read_at', "!=", null);
+        $this->QueryBuilder = $this->QueryBuilder->where(self::COLUMN_READ_AT, "!=", null);
         return $this;
     }
 
@@ -76,11 +87,11 @@ class NotificationRepository
 
     public function markAsRead(): bool
     {
-        return boolval($this->QueryBuilder->update(["read_at" => now()->toDateTimeString()]));
+        return boolval($this->QueryBuilder->update([self::COLUMN_READ_AT => now()->toDateTimeString()]));
     }
 
     public function markAsUnread(): bool
     {
-        return  boolval($this->QueryBuilder->update(["read_at" => null]));
+        return  boolval($this->QueryBuilder->update([self::COLUMN_READ_AT => null]));
     }
 }

@@ -4,6 +4,7 @@ namespace App\Notifications\Transactions;
 
 use App\Helpers\URLHelper;
 use App\Models\Order;
+use App\Traits\Notifications\HasToBroadcastNotificationTrait;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -14,6 +15,7 @@ use Illuminate\Notifications\Notification;
 class MakeRequestingMoneyNotification extends Notification
 {
     use Queueable;
+    use HasToBroadcastNotificationTrait;
 
     public Order $order;
 
@@ -38,7 +40,7 @@ class MakeRequestingMoneyNotification extends Notification
      */
     public function via($notifiable)
     {
-        return ["mail", "database"];
+        return ["mail", "database", "broadcast"];
     }
 
     /**
