@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ReceivingMoneyNotification extends Notification
+class ReceivingMoneyNotification  extends Notification implements ShouldQueue
 {
     use Queueable;
     use HasToBroadcastNotificationTrait;

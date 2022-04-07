@@ -80,9 +80,8 @@ class SendMoneyNotification extends Notification implements ShouldBroadcast, Sho
      * @param  mixed  $notifiable
      * @return array
      */
-    public function toDatabase($notifiable)
+    public function toArray($notifiable)
     {
-        Log::info("notifification id : " . $this->id);
         return [
             "header" => "Send money successfully",
             "body" =>
