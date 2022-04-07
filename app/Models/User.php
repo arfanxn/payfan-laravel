@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Helpers\URLHelper;
+use App\Providers\BroadcastServiceProvider;
 use Exception;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -52,6 +53,11 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function getProfilePictAttribute($profilePict)
     {
         return URLHelper::userProfilePict($profilePict);
+    }
+
+    public function receivesBroadcastNotificationsOn()
+    {
+        return BroadcastServiceProvider::USER_AUTHORIZATION($this->id);
     }
 
     /**

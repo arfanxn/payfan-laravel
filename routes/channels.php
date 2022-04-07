@@ -1,5 +1,6 @@
 <?php
 
+use App\Providers\BroadcastServiceProvider;
 use App\Repositories\NotificationRepository;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Log;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 |
 */
 
-Broadcast::channel('User.{id}', function ($user, $id) {
+Broadcast::channel(BroadcastServiceProvider::USER_AUTHORIZATION() . "{id}", function ($user, $id) {
     return intval($user->id) === intval($id);
 });
 

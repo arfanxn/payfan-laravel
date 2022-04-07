@@ -12,6 +12,12 @@ class BroadcastServiceProvider extends ServiceProvider
      *
      * @return void
      */
+
+    public static final function USER_AUTHORIZATION($id = "")
+    {
+        return  "users." . $id;
+    }
+
     public function boot()
     {
         Broadcast::routes(['middleware' => ['auth'], "prefix"  => "api"]); // 
