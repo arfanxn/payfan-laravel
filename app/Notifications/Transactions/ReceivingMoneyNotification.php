@@ -7,12 +7,13 @@ use App\Models\Order;
 use App\Traits\Notifications\HasToBroadcastNotificationTrait;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Str;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ReceivingMoneyNotification  extends Notification implements ShouldQueue
+class ReceivingMoneyNotification  extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
     use HasToBroadcastNotificationTrait;

@@ -8,11 +8,12 @@ use App\Traits\Notifications\HasToBroadcastNotificationTrait;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class RejectedRequestMoneyNotification extends Notification implements ShouldQueue
+class RejectedRequestMoneyNotification extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
     use HasToBroadcastNotificationTrait;

@@ -15,7 +15,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 
-class SendMoneyNotification extends Notification implements ShouldBroadcast, ShouldQueue
+class SendMoneyNotification extends Notification implements ShouldBroadcast,  ShouldQueue
 {
     use Queueable;
     use HasToBroadcastNotificationTrait;

@@ -8,12 +8,20 @@ trait HasToBroadcastNotificationTrait
 {
     public function toBroadcast($notifiable): BroadcastMessage
     {
+        $data = [];
+        if (method_exists(self::class, "toBroadcastData"))
+            $data = $this->toBroadcastData($notifiable);
+        else if (method_exists(self::class, "toArray"))
+            $this->toArray($notifiable);
+        else if (method_exists(self::class, "toDatabase"))
+            $data =  $this->toDatabase($notifiable);
+
         return (new BroadcastMessage([
             "id" => $this->id,
             "type" => __CLASS__,
             "notifiable_id" => $notifiable->id,
             "notifiable_type" => get_class($notifiable),
-            "data" => $this->toBroadcastData($notifiable) ?? $this->toArray($notifiable) ?? $this->toDatabase($notifiable),
+            "data" =>  $data,
             "created_at" => now()->toIsoString(),
             "updated_at" => null,
             "read_at" => null,
