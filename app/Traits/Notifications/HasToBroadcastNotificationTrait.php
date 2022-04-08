@@ -11,8 +11,10 @@ trait HasToBroadcastNotificationTrait
         $data = [];
         if (method_exists(self::class, "toBroadcastData"))
             $data = $this->toBroadcastData($notifiable);
+        else if (method_exists(self::class, "toBroadcastCustomData"))
+            $data = $this->toBroadcastCustomData($notifiable);
         else if (method_exists(self::class, "toArray"))
-            $this->toArray($notifiable);
+            $data = $this->toArray($notifiable);
         else if (method_exists(self::class, "toDatabase"))
             $data =  $this->toDatabase($notifiable);
 
