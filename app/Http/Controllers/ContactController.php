@@ -12,14 +12,56 @@ use App\Responses\ErrorsResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class ContactController extends Controller
 {
-    public function topContacts(Request $request)
+    public function index(Request $request)
     {
-        $contacts = ContactRepository::getTopContacts(Auth::id());
-        $contacts = ContactResource::collection($contacts);
-        return response()->json(["contacts" => $contacts]);
+        $validator = Validator::make($request->all(), [
+            // "filter" => ["nullable",],
+            "order_by" => ["nullable", Rule::in([
+                'total_transaction:asc', 'total_transaction:desc',
+                "last_transaction:asc",  "last_transaction:desc",
+                "added_at:asc",  "added_at:desc",
+            ])],
+            "favorited" => "nullable",
+            "blocked" => "nullable",
+            "added" => "nullable",
+
+            // parameters for handling pagination/paginator
+            "per_page" => "nullable|integer",
+            "page" => "nullable|integer",
+        ]);
+        $validatorValidated = $validator->validated();
+
+        $perPage = $validatorValidated['per_page'] ?? 10;
+        $currentPage = $validatorValidated["page"] ?? 1;
+        $offset = ($currentPage * $perPage) - $perPage;
+
+        $contactQuery = Contact::with(['user.wallet'])->offset($offset)->limit($perPage)
+            ->where(fn ($q) => $q->where("owner_id", Auth::id()));
+
+        $contacts = ContactRepository::filters([
+            // "filter" => $validatorValidated['filter'] ?? null,
+            "order_by" => $validatorValidated['order_by'] ?? null,
+            "blocked" => $validatorValidated['blocked'] ? true : false,
+            "favorited" => $validatorValidated['favorited'] ? true : false,
+            "added" => $validatorValidated['added'] ? true : false,
+        ], $contactQuery)->get();
+
+        $contacts = (new \Illuminate\Pagination\Paginator( // convert to pagination
+            $contacts->toArray(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        ));
+
+        return response()->json(compact("contacts"));
     }
 
     public function lastTransactionDetail(Contact $contact)

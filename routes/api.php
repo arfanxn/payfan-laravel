@@ -52,6 +52,7 @@ Route::prefix("validator")->group(function () {
     });
 });
 
+Route::get("users-and-contacts/search", [SearchPeopleController::class, "searchExceptSelf"])->middleware("auth");
 Route::prefix("user")->middleware("api")->group(function () {
 
     Route::post('/register', [AuthController::class, 'register'])->middleware("verification_code.verify");
@@ -90,7 +91,7 @@ Route::prefix("user")->middleware("api")->group(function () {
             });
 
             Route::prefix("contacts")->group(function () {
-                Route::get("top-contacts", [ContactController::class,  'topContacts']);
+                Route::get("", [ContactController::class,  'index']);
             });
             Route::prefix("contact")->group(function () {
                 Route::get("{contact}/last-transaction", [ContactController::class, "lastTransactionDetail"]);
@@ -124,12 +125,10 @@ Route::prefix("user")->middleware("api")->group(function () {
     });
 });
 
-Route::get("users-and-contacts/search", [SearchPeopleController::class, "searchExceptSelf"])->middleware("auth");
-
 
 
 Route::prefix("test")->group(function () {
     Route::get("", [__TestController::class, "index"]);
     Route::get("preview/mail-notification/", [__TestController::class, "previewMailNotification"]);
-    Route::get("trigger/event", [__TestController::class, "triggerEvent"]);
+    Route::get("trigger/notification/broadcast", [__TestController::class, "triggerNotificationBroadcast"]);
 });
