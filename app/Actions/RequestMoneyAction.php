@@ -14,6 +14,7 @@ use App\Notifications\Transactions\MakeRequestingMoneyNotification;
 use App\Notifications\Transactions\NewRequestedMoneyNotification;
 use App\Notifications\Transactions\RejectedRequestMoneyNotification;
 use App\Notifications\Transactions\RejectingRequestMoneyNotification;
+use App\Repositories\ContactRepository;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -146,14 +147,14 @@ class RequestMoneyAction extends TransactionActionAbstract
             $approvedOrder = tap(
                 Order::where(fn ($q) => $q
                     ->where('transaction_id', $order->transaction_id)  /**/),
-                function ($userQuery)  use ($completedAt, $order) {
+                function ($orderQuery)  use ($completedAt, $order) {
                     // update 2 related order 
-                    $userQuery->update([
+                    $orderQuery->update([
                         "status" => Order::STATUS_COMPLETED,
                         "completed_at" => $completedAt
                     ]);
                     // get where clause user_id not equal to order->user_id
-                    return $userQuery->where("user_id", "!=", $order->user_id);
+                    return $orderQuery->where("user_id", "!=", $order->user_id);
                 }
             );
             // end
@@ -168,6 +169,9 @@ class RequestMoneyAction extends TransactionActionAbstract
             $approvedOrder = $approvedOrder->first();
             DB::commit();
 
+            ContactRepository::incrementAndUpdate_LastTransactionAndTotalTransaction_whereOwnerIdOrSavedId(
+                [$order["user_id"] ?? $order->user_id, $approvedOrder['user_id']/**/],
+            );
             Notification::send(
                 User::query()->where("id", $order->user_id)->first()  /**/,
                 new ApprovingRequestMoneyNotification($order)

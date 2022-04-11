@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Wallet;
 use App\Notifications\Transactions\ReceivingMoneyNotification;
 use App\Notifications\Transactions\SendMoneyNotification;
+use App\Repositories\ContactRepository;
 use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
@@ -116,6 +117,9 @@ class SendMoneyAction extends TransactionActionAbstract
 
             DB::commit();
 
+            ContactRepository::incrementAndUpdate_LastTransactionAndTotalTransaction_whereOwnerIdOrSavedId(
+                [$senderOrder['user_id'], $receiverOrder['user_id']/**/],
+            );
             Notification::send(
                 User::where("id", $senderOrder['user_id'])->first(),
                 new SendMoneyNotification(new \App\Models\Order($senderOrder))
