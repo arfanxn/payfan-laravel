@@ -29,11 +29,15 @@ class OrderController extends Controller
             ],
             "status" => "nullable|string",
             "type" => "nullable|string",
+
+            // pagination config
+            "per_page" => "nullable|numeric",
+            "page" => "nullable|numeric",
         ]);
         $validatorValidated = $validator->validated();
 
-        $perPage = 10;
-        $currentPage = $request->get("page", 1);
+        $perPage = $validatorValidated["per_page"] ?? 10;
+        $currentPage = $validatorValidated["page"] ?? 1;
         $offset = ($currentPage * $perPage) - $perPage;
 
         $orderQuery = Order::with(['fromWallet.user', "toWallet.user",])
