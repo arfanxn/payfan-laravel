@@ -94,10 +94,11 @@ Route::prefix("user")->middleware("api")->group(function () {
                 Route::get("", [ContactController::class,  'index']);
             });
             Route::prefix("contact")->group(function () {
-                Route::get("{contact}/last-transaction", [ContactController::class, "lastTransactionDetail"]);
-                Route::get("{contact}/toggle-favorite", [ContactController::class, "toggleFavorite"]);
+                Route::get("{contact:id}/last-transaction", [ContactController::class, "lastTransactionDetail"]);
+                Route::get("{contact:id}/toggle-favorite", [ContactController::class, "toggleFavorite"]);
                 Route::post("/add-or-rm/user/{user:id}", [ContactController::class, "addOrRemove"]);
-                Route::post("/{contact}/block", [ContactController::class, "block"]);
+                Route::patch("/{contact:id}/block", [ContactController::class, "block"]);
+                Route::patch("/{contact:id}/unblock", [ContactController::class, "unblock"]);
             });
 
             Route::get("orders", [OrderController::class, "index"]);

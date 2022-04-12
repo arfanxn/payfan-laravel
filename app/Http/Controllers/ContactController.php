@@ -46,9 +46,9 @@ class ContactController extends Controller
         $contacts = ContactRepository::filters([
             // "filter" => $validatorValidated['filter'] ?? null,
             "order_by" => $validatorValidated['order_by'] ?? null,
-            "blocked" => $validatorValidated['blocked'] ? true : false,
-            "favorited" => $validatorValidated['favorited'] ? true : false,
-            "added" => $validatorValidated['added'] ? true : false,
+            "blocked" =>   boolval($validatorValidated['blocked'] ?? false),
+            "favorited" => boolval($validatorValidated['favorited'] ??  false),
+            "added" =>  boolval($validatorValidated['added'] ?? false),
         ], $contactQuery)->get();
 
         $contacts = (new \Illuminate\Pagination\Paginator( // convert to pagination
@@ -141,6 +141,16 @@ class ContactController extends Controller
         $contact->status = Contact::STATUS_BLOCKED;
         return $contact->save() ?
             response()->json(['message' => "Contact blocked successfully."])->setStatusCode(200, "Contact blocked successfully.")
+            : ErrorsResponse::server();
+    }
+
+    public function unblock(Contact $contact)
+    {
+        if (Gate::denies("has-contact", $contact)) return response("Forbidden", 403);
+
+        $isDeleted = $contact->delete();
+        return $isDeleted ?
+            response()->json(['message' => "Contact unblocked successfully."])->setStatusCode(200, "Contact unblocked successfully.")
             : ErrorsResponse::server();
     }
 }
