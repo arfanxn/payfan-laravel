@@ -41,6 +41,9 @@ class ReceivingMoneyNotification  extends Notification implements ShouldBroadcas
      */
     public function via($notifiable)
     {
+        if (!/**/$notifiable->settings->receive_notification)
+            return ["database", "broadcast"];
+
         return ["mail", "database", "broadcast"];
     }
 

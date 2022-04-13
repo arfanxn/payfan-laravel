@@ -43,7 +43,10 @@ class SendMoneyNotification extends Notification implements ShouldBroadcast,  Sh
      */
     public function via($notifiable)
     {
-        return ['database', "mail", "broadcast"];
+        if (!/**/$notifiable->settings->payment_notification)
+            return ["database", "broadcast"];
+
+        return ["mail", "database", "broadcast"];
     }
 
     /**

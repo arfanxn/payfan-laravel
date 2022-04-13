@@ -41,6 +41,9 @@ class MakeRequestingMoneyNotification extends Notification implements ShouldBroa
      */
     public function via($notifiable)
     {
+        if (!/**/$notifiable->settings->request_notification)
+            return ["database", "broadcast"];
+
         return ["mail", "database", "broadcast"];
     }
 

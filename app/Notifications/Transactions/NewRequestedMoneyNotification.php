@@ -41,6 +41,9 @@ class NewRequestedMoneyNotification extends Notification implements ShouldBroadc
      */
     public function via($notifiable)
     {
+        if (!/**/$notifiable->settings->request_notification)
+            return ["database", "broadcast"];
+
         return ["mail", "database", "broadcast"];
     }
 

@@ -38,9 +38,12 @@ class RejectedRequestMoneyNotification extends Notification implements ShouldBro
      *
      * @param  mixed  $notifiable
      * @return array
-     */
+    */
     public function via($notifiable)
     {
+        if (!/**/$notifiable->settings->request_notification)
+            return ["database", "broadcast"];
+
         return ["mail", "database", "broadcast"];
     }
 

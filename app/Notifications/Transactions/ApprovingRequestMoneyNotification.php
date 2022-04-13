@@ -41,6 +41,9 @@ class ApprovingRequestMoneyNotification extends Notification implements ShouldBr
      */
     public function via($notifiable)
     {
+        if (!/**/$notifiable->settings->request_notification)
+            return ["database", "broadcast"];
+
         return ["mail", "database", "broadcast"];
     }
 
