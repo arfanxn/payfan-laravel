@@ -20,7 +20,10 @@ class NotificationController extends Controller
         $totalUnreadNotifications = NotificationRepository::make()->where_Notifiable(Auth::user())->where_Unread()->getBuilder()->count();
         $notifications = Auth::user()->notifications()->simplePaginate(20);
 
-        $notifications = collect(['total_unread' => $totalUnreadNotifications])->merge($notifications);
+        $notifications = collect(
+            ['total_unread' => is_int((int) $totalUnreadNotifications) ? (int) $totalUnreadNotifications : 0]
+            // 
+        )->merge($notifications);
         return response()->json(["notifications" => $notifications]);
     }
 
