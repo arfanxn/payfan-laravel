@@ -93,6 +93,9 @@ class NewRequestedMoneyNotification extends Notification implements ShouldBroadc
             "action" => [
                 "text" => "View Pending Request",
                 "url" => URLHelper::frontendWeb("/activity?keyword=" . $this->order->id),
+                "query" => [
+                    "order_id" => $this->order->id
+                ]
             ]
         ];
     }

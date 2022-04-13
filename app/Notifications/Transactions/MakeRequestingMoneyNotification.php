@@ -93,6 +93,9 @@ class MakeRequestingMoneyNotification extends Notification implements ShouldBroa
             "action" => [
                 "text" => "View Request",
                 "url" => URLHelper::frontendWeb("/activity?keyword=" . $this->order->id),
+                "query" => [
+                    "order_id" => $this->order->id
+                ]
             ]
         ];
     }

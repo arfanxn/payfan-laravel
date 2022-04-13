@@ -93,6 +93,9 @@ class ApprovedRequestMoneyNotification extends Notification implements ShouldBro
             "action" => [
                 "text" => "View Approved Request",
                 "url" => URLHelper::frontendWeb("/activity?keyword=" . $this->order->id),
+                "query" => [
+                    "order_id" => $this->order->id
+                ]
             ]
         ];
     }

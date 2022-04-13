@@ -93,6 +93,9 @@ class RejectingRequestMoneyNotification extends Notification implements ShouldBr
             "action" => [
                 "text" => "View Rejected Request",
                 "url" => URLHelper::frontendWeb("/activity?keyword=" . $this->order->id),
+                "query" => [
+                    "order_id" => $this->order->id
+                ]
             ]
         ];
     }

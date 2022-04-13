@@ -92,6 +92,9 @@ class ReceivingMoneyNotification  extends Notification implements ShouldBroadcas
             "action" => [
                 "text" => "View Invoice",
                 "url" => URLHelper::frontendWeb("activity?keyword=" . $this->order->id),
+                "query" => [
+                    "order_id" => $this->order->id
+                ]
             ]
         ];
     }

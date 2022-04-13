@@ -38,7 +38,7 @@ class RejectedRequestMoneyNotification extends Notification implements ShouldBro
      *
      * @param  mixed  $notifiable
      * @return array
-    */
+     */
     public function via($notifiable)
     {
         if (!/**/$notifiable->settings->request_notification)
@@ -93,6 +93,9 @@ class RejectedRequestMoneyNotification extends Notification implements ShouldBro
             "action" => [
                 "text" => "View Rejected Request",
                 "url" => URLHelper::frontendWeb("/activity?keyword=" . $this->order->id),
+                "query" => [
+                    "order_id" => $this->order->id
+                ]
             ]
         ];
     }
