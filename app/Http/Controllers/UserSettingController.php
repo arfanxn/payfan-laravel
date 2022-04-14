@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\StrHelper;
 use App\Models\User;
+use App\Models\UserSetting;
 use App\Responses\ErrorsResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,18 @@ use Illuminate\Support\Facades\Validator;
 
 class UserSettingController extends Controller
 {
+    public function get($userIDorEmail)
+    {
+        $user = User::with("settings")
+            ->where(fn ($q) => $q->where("id", $userIDorEmail)->orWhere("email", $userIDorEmail))
+            ->first();
+        if ($user) {
+            return response()->json(["user_settings" => $user->settings]);
+        }
+
+        return response()->json(["user_settings" => null]);
+    }
+
     public function disableOrEnable2FA( /*Request $request */)
     {
         // $validator =  Validator::make($request->only("2fa"), [

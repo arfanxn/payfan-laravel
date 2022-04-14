@@ -53,7 +53,9 @@ Route::prefix("validator")->group(function () {
 });
 
 Route::get("users-and-contacts/search", [SearchPeopleController::class, "searchExceptSelf"])->middleware("auth");
-Route::prefix("user")->middleware("api")->group(function () {
+Route::prefix("users")->group(function () {
+    Route::post('/password/recovery', [AuthController::class, 'passwordRecovery'])
+        ->middleware(['vc_or_sq.verify']);
 
     Route::post('/register', [AuthController::class, 'register'])->middleware("verification_code.verify");
     Route::post('/login', [AuthController::class, 'login'])->name("login");
@@ -63,10 +65,12 @@ Route::prefix("user")->middleware("api")->group(function () {
             ->middleware(["throttle:one_perminute"]);
         Route::post("/verify", [AuthController::class, "verifyVerificationCode"]);
     });
+});
+Route::prefix("user")->middleware("api")->group(function () {
+    Route::get("{userIDorEmail}/settings", [UserSettingController::class, "get"]);
 
     Route::middleware("auth")->group(function () {
         Route::get('/logout', [AuthController::class, 'logout']);
-        Route::get('/profile', [AuthController::class, 'userProfile']);
 
         Route::prefix("auth")->group(function () {
             Route::get('/refresh', [AuthController::class, 'refresh']);

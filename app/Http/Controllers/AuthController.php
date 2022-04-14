@@ -113,6 +113,31 @@ class AuthController extends Controller
     }
 
     /**
+     * password recovery.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function passwordRecovery(Request $request)
+    {
+        $validator = Validator::make(
+            $request->only(["email", "new_password", "new_password_confirmation"]),
+            [   // rules
+                "email" => "email|required|max:100",
+                "new_password" => "required|string|max:100|min:6",
+                "new_password_confirmation" => "required|string|max:100|min:6|same:new_password",
+            ]
+        );
+
+        $isUpdateSuccess = User::where("email", $validator->validated()['email'])
+            ->update([
+                "password" => bcrypt($validator->validated()['new_password']),
+            ]);
+
+        return $isUpdateSuccess ? response()->json("Password reseted successfully")
+            : response()->json("Update failed")->setStatusCode(500);
+    }
+
+    /**
      * Log the user out (Invalidate the token).
      *
      * @return \Illuminate\Http\JsonResponse
@@ -135,36 +160,36 @@ class AuthController extends Controller
         return response(["authenticated" => Auth::check()]);
     }
 
-    /**
-     * Get the authenticated User.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function userProfile()
-    {
-        return response()->json(["user" => Auth::user()]);
-    }
-
     public function createVerificationCode(Request $request)
     {
-        $validator = Validator::make($request->only("email"), [
-            "email" =>  [Rule::requiredIf(!Cookie::has("jwt"))]
+        $validator = Validator::make($request->only(["email", "reason"]), [
+            "email" =>  [Rule::requiredIf(!Cookie::has("jwt"))],
+            "reason" => "nullable|string|max:25"
         ]);
         if ($validator->fails()) return response($validator->errors()->messages(), 422);
 
+        $email = $validator->validated()['email'];
+        $verificationReason = $validator->validated()['reason'] ?? "";
+
         $user = new User;
 
-        if (Cookie::has("jwt") && !$validator->validated()["email"]) {
+        if (Cookie::has("jwt") && !$email) {
             $jwtPayl = JWTService::getPayload();
             $user = User::where("id", $jwtPayl->sub)->first();
-        } else if ($validator->validated()["email"] /**/) {
-            $user  = User::where("id", $validator->validated()["email"])->first();;
+        } else if ($email /**/) {
+            $user  = User::where("email", $email /**/)->first();
         }
 
         $verificationCode = VerificationCodeService::generate(6);
-        $hashedCode = VerificationCodeService::createHash($user->email, $verificationCode, 30);
+        $hashedCode = VerificationCodeService::createHash($email, $verificationCode, 30);
 
-        Notification::send($user, new VerificationCodeNotification($verificationCode));
+        if ($user) {
+            Notification::send($user, new VerificationCodeNotification($verificationCode, $verificationReason));
+        } else {
+            Notification::route("mail", $email/**/)->notify(
+                new VerificationCodeNotification($verificationCode, $verificationReason)
+            );
+        }
 
         return response()->json()->withCookie(cookie("hashed_code", $hashedCode, 30));
     }
