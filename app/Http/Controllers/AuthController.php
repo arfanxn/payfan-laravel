@@ -9,7 +9,6 @@ use App\Notifications\VerificationCodeNotification;
 use App\Responses\VerificationCodeResponse;
 use App\Services\VerificationCodeService;
 use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use App\Services\JWTService;
@@ -39,22 +38,17 @@ class AuthController extends Controller
             'password' => 'required|string|min:8',
             "code" => "nullable|string|digits:6"
         ]);
-        if ($validator->fails()) {
-            return response()->json($validator->errors()->messages(), 422);
-        }
+        if ($validator->fails()) return response()->json($validator->errors()->messages(), 422);
 
-        if (!$token = Auth::attempt([
-            "email" => $validator->validated()["email"],
-            "password" => $validator->validated()["password"]
-        ])) {
-            return response()->json(["password" => "Your credentials doesn't match our records",  'error_message' => 'Unauthorized'], 401);
+        if (!$token = Auth::attempt($request->only(['email', 'password'])) /**/) {
+            return response()->json(["error_message" => "Your credentials doesn't match our records"], 401);
         }
 
         $isRequire2FA = Auth::user()->settings->isRequire2FA();
         if ($isRequire2FA) {
             if (!isset($validator->validated()["code"]) || !$validator->validated()["code"])
                 return response()
-                    ->json(["error_message" => "Verification Code required to verify it's your"])
+                    ->json(["error_message" => "Two factor authentication enabled, Verification code required."])
                     ->setStatusCode(422, 'Require2FA');
 
             $hashedCode = VerificationCodeService::getHashedCode($request);
@@ -88,15 +82,13 @@ class AuthController extends Controller
             "password_confirmation" => "required|string|min:8|same:password"
         ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors()->messages(), 400);
-        }
+        if ($validator->fails()) return response()->json($validator->errors()->messages(), 400);
 
         $user = User::create(array_merge(
             $validator->validated(),
             [
-                "name" => ucwords($request->name),
-                "email_verified_at" => now()->toDateTimeString(),
+                "name" => ucwords(strtolower($request->name)),
+                "email_verified_at" => now()->toDateTimeString(), // email verificaion process are handled behind the scene at the "VerifyVerificationCodeMiddleware"   
                 'password' => bcrypt($request->password)
             ]
         ));
