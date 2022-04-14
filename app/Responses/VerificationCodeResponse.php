@@ -36,7 +36,7 @@ class VerificationCodeResponse
             "Please resend a new Verification Code."], 422);
     }
 
-    public static function codeSended()
+    public static function codeSent()
     {
         return response([self::Message => "Verification Code has been sent to your email."]);
     }

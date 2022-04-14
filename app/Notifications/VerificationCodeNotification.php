@@ -47,22 +47,10 @@ class VerificationCodeNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject("Verification Code | " . config("app.name"))
-            ->greeting("Hello, $notifiable->name .")
+            ->greeting(isset($notifiable->name) ? "Hello, $notifiable->name ." : "Hello.")
             ->line("Your verification code for verifying " . $this->verificationReason . " is.")
             ->line('Verification Code : ' . $this->verificationCode)
             ->line('Expire at : ' . now()->addMinutes(30)->format("M d D - H:i") . " UTC")
             ->line("Don't let anyone know your verification code.");
-    }
-
-    /**
-     * Get the array representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return array
-     */
-    public function toArray($notifiable)
-    {
-        return array_merge($this->order, ["text" => "Your request money to " . $notifiable->name . " for $"
-            . $this->order['amount'] . "has been sent"]);
     }
 }
