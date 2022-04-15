@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\StrHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -89,7 +90,8 @@ class AuthController extends Controller
             [
                 "name" => ucwords(strtolower($request->name)),
                 "email_verified_at" => now()->toDateTimeString(), // email verificaion process are handled behind the scene at the "VerifyVerificationCodeMiddleware"   
-                'password' => bcrypt($request->password)
+                'password' => bcrypt($request->password),
+                "profile_pict" => '#' . StrHelper::random(6, "ABCDEF0123456789", true)->toUpperCase()->get()
             ]
         ));
 
