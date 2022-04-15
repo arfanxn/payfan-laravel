@@ -20,6 +20,12 @@ Broadcast::channel(BroadcastServiceProvider::USER_AUTHORIZATION() . "{id}", func
     return intval($user->id) === intval($id);
 });
 
-Broadcast::channel('Notification.{notifiable_id}', function ($user, $notifiable_id) {
-    return intval($user->id) === intval($notifiable_id ?? null);
+Broadcast::channel('wallets.{id}', function ($user, $id) {
+    $wallet = \App\Models\Wallet::query()->where("id", $id)->first();
+    return intval($user->id) === intval($wallet->user_id ?? null);
+});
+
+Broadcast::channel('payments.{uuid}', function ($user, $uuid) {
+    $payment = \App\Models\Order::query()->where("id", $uuid)->first();
+    return intval($user->id) === intval($payment->user_id ?? null);
 });

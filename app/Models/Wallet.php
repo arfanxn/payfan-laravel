@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Concerns\HasEvents;
 use Illuminate\Database\Eloquent\Model;
 
 class Wallet extends Model
 {
-    use HasFactory;
+    use HasFactory, HasEvents;
 
     const CREATED_AT = null, UPDATED_AT = null;
 

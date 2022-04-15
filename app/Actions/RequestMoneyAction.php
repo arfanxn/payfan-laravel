@@ -2,6 +2,8 @@
 
 namespace App\Actions;
 
+use App\Events\PaymentStatusCompletedEvent;
+use App\Events\WalletUpdatedEvent;
 use App\Exceptions\TransactionException;
 use App\Helpers\StrHelper;
 use App\Models\Order;
@@ -28,28 +30,28 @@ class RequestMoneyAction extends TransactionActionAbstract
             $amount = ($this->amount);
             $note = $this->note ?? "";
             $charge = $this->charge ?? 0;
-            $toWallet = $this->toWallet;
-            $fromWallet = $this->fromWallet;
+            $beingRequestedWallet = $this->toWallet;
+            $requesterWallet = $this->fromWallet;
 
             // if the user requesting to the same wallet, let say wallet-id-1 requeesting to wallet-id-1 ,throw an error.
-            if ($fromWallet ==  $toWallet)
-                throw new TransactionException("Can't request to the same Wallet!");
+            if ($requesterWallet ==  $beingRequestedWallet)
+                throw new TransactionException("Can't make a request to the same Wallet!");
             // end
 
             // minumum request must be at least "$0.10"
             if ($amount < floatval(Transaction::MINIMUM_AMOUNT)) throw new TransactionException("Minimum Transaction is $0.10");
             // end
 
-            $fromWalletData = Wallet::where("address", $fromWallet)->first();
+            $requesterWalletData = Wallet::where("address", $requesterWallet)->first();
 
-            $toWalletData = Wallet::where("address", $toWallet)->first();
+            $beingRequestedWalletData = Wallet::where("address", $beingRequestedWallet)->first();
 
             $now = now();
             $transactionID = strtoupper(StrHelper::random(14)) . $now->timestamp;
             Transaction::create([
                 "id" => $transactionID,
-                "from_wallet" => $fromWalletData->id,
-                "to_wallet" => $toWalletData->id,
+                "from_wallet" => $requesterWalletData->id,
+                "to_wallet" => $beingRequestedWalletData->id,
                 "amount" => $amount,
                 "charge" => $charge,
                 "status" => Transaction::STATUS_PENDING,
@@ -57,9 +59,9 @@ class RequestMoneyAction extends TransactionActionAbstract
             ]);
             $requestingOrder = [ // create a new order for requester money/payment account
                 "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
-                "user_id" => $fromWalletData->user_id,
-                "from_wallet" => $fromWalletData->id,
-                "to_wallet" => $toWalletData->id,
+                "user_id" => $requesterWalletData->user_id,
+                "from_wallet" => $requesterWalletData->id,
+                "to_wallet" => $beingRequestedWalletData->id,
                 "transaction_id" => $transactionID,
                 "note" => $note,
                 "type" => Order::TYPE_REQUESTING_MONEY,
@@ -72,9 +74,9 @@ class RequestMoneyAction extends TransactionActionAbstract
             ];
             $requestedOrder = [ // create a new order for  account that being requested money
                 "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
-                "user_id" => $toWalletData->user_id,
-                "from_wallet" => $fromWalletData->id,
-                "to_wallet" => $toWalletData->id,
+                "user_id" => $beingRequestedWalletData->user_id,
+                "from_wallet" => $requesterWalletData->id,
+                "to_wallet" => $beingRequestedWalletData->id,
                 "transaction_id" => $transactionID,
                 "note" => $note,
                 "type" => Order::TYPE_REQUESTED_MONEY,
@@ -114,27 +116,27 @@ class RequestMoneyAction extends TransactionActionAbstract
             $amount = ($order->amount);
             $charge = $order->charge ?? $charge;
             $amountAndCharge = ($amount) + ($charge);
-            $toWallet = $order->toWallet->address;
-            $fromWallet = $order->fromWallet->address;
+            $beingRequestedWallet = $order->toWallet->address;
+            $requesterWallet = $order->fromWallet->address;
 
-            $fromWalletData = Wallet::where("address", $fromWallet)
+            $requesterWalletData = Wallet::where("address", $requesterWallet)
                 ->where("balance", ">=", ($amountAndCharge))->first();
 
             // check is fromWallet exist and valid
             // if valid and also exist , add the amount to fromWallet balance 
-            if ($fromWalletData) {
-                $fromWalletData->increment("balance");
-                $fromWalletData->save();
+            if ($requesterWalletData) {
+                $requesterWalletData->increment("balance");
+                $requesterWalletData->save();
             } else throw new TransactionException("Wallet address not found or Invalid!");
             // end
 
-            $toWalletData = Wallet::where("address", $toWallet)->first();
+            $beingRequestedWalletData = Wallet::where("address", $beingRequestedWallet)->first();
 
             // check is toWallet valid/exist and balance enough for doing this transfer process
             // if exist -> subtract the toWallet balance
-            if ($toWalletData && (floatval($toWalletData->balance) >= $amountAndCharge)) {
-                $toWalletData->decrement("balance", $amountAndCharge);
-                $toWalletData->save();
+            if ($beingRequestedWalletData && (floatval($beingRequestedWalletData->balance) >= $amountAndCharge)) {
+                $beingRequestedWalletData->decrement("balance", $amountAndCharge);
+                $beingRequestedWalletData->save();
             } else throw new TransactionException("Wallet balance is not enough!");
             // end 
 
@@ -169,9 +171,16 @@ class RequestMoneyAction extends TransactionActionAbstract
             $approvedOrder = $approvedOrder->first();
             DB::commit();
 
+            // update related 
+            Wallet::query()->where(fn ($q) => $q->whereIn(
+                "id",
+                [$requesterWalletData->id, $beingRequestedWallet->id]
+            ));
             ContactRepository::incrementAndUpdate_LastTransactionAndTotalTransaction_whereOwnerIdOrSavedId(
                 [$order["user_id"] ?? $order->user_id, $approvedOrder['user_id']/**/],
             );
+            // end
+
             Notification::send(
                 User::query()->where("id", $order->user_id)->first()  /**/,
                 new ApprovingRequestMoneyNotification($order)
@@ -180,6 +189,9 @@ class RequestMoneyAction extends TransactionActionAbstract
                 User::query()->where("id", $approvedOrder->user_id)->first(),
                 new ApprovedRequestMoneyNotification($approvedOrder)
             );
+
+            broadcast(new WalletUpdatedEvent($requesterWalletData))->toOthers();
+            broadcast(new PaymentStatusCompletedEvent(new Order($approvedOrder)))->toOthers();
 
             return $order; // return the updated order object 
         } catch (\Exception | \Throwable $e) {

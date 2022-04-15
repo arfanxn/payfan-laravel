@@ -2,6 +2,8 @@
 
 namespace App\Actions;
 
+use App\Events\PaymentStatusCompletedEvent;
+use App\Events\WalletUpdatedEvent;
 use App\Exceptions\TransactionException;
 use App\Helpers\StrHelper;
 use App\Models\Order;
@@ -117,9 +119,16 @@ class SendMoneyAction extends TransactionActionAbstract
 
             DB::commit();
 
+            // update related
+            Wallet::query()->where(fn ($q) => $q->whereIn(
+                "id",
+                [$fromWalletData->id, $toWalletData->id]
+            ));
             ContactRepository::incrementAndUpdate_LastTransactionAndTotalTransaction_whereOwnerIdOrSavedId(
                 [$senderOrder['user_id'], $receiverOrder['user_id']/**/],
             );
+            // end
+
             Notification::send(
                 User::where("id", $senderOrder['user_id'])->first(),
                 new SendMoneyNotification(new \App\Models\Order($senderOrder))
@@ -128,6 +137,11 @@ class SendMoneyAction extends TransactionActionAbstract
                 User::where("id", $receiverOrder['user_id'])->first(),
                 new ReceivingMoneyNotification(new \App\Models\Order($senderOrder))
             );
+
+            // broadcast(new WalletUpdatedEvent($fromWalletData))->toOthers();
+            // broadcast(new PaymentStatusCompletedEvent(new Order($senderOrder)))->toOthers();
+            broadcast(new WalletUpdatedEvent($toWalletData))->toOthers();
+            broadcast(new PaymentStatusCompletedEvent(new Order($receiverOrder)))->toOthers();
 
             return $senderOrder;
         } catch (\Exception | \Throwable $e) {
