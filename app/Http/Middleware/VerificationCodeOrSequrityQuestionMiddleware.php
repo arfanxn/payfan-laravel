@@ -28,7 +28,19 @@ class VerificationCodeOrSequrityQuestionMiddleware
             "security_answer" => [Rule::requiredIf(fn () => !$request->get("code", false)), "string"],
         ]);
         $middlewareFailStatusText = "VerificationCodeOrSequrityQuestionMiddleware";
+        /*  read for understanding "email" variable
+            "email" is required if user is not logged in 
+
+            if user is already logged in and "email" is not provided then get the email from the logged in user (Auth::user()->email)
+
+            so "email" is only required if user is not logged in , 
+                and if user is logged in "email" is optional you can provide it or not
+
+            if user is already logged in and "email" is provided then use the provided "email" instead of from (Auth::user()->email)
+            */
         $email = $validator->validated()["email"] ?? Auth::user()->email ?? null;
+        // end 
+
         $code = $validator->validated()["code"] ?? null;
         $securityAnswer = $validator->validated()["security_answer"] ?? null;
 
