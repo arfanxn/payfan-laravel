@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Observers\UserObserver;
 use App\Models\Transaction;
 use App\Models\Wallet;
-use App\Observers\TransactionObserver;
 use App\Observers\WalletObserver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
