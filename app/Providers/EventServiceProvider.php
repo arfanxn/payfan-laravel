@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use App\Observers\UserObserver;
 use App\Models\Transaction;
 use App\Observers\TransactionObserver;
 use Illuminate\Auth\Events\Registered;
@@ -30,5 +32,6 @@ class EventServiceProvider extends ServiceProvider
     public function boot()
     {
         Transaction::observe(TransactionObserver::class);
+        User::observe(UserObserver::class);
     }
 }
