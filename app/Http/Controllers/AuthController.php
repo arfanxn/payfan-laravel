@@ -117,10 +117,15 @@ class AuthController extends Controller
             $request->only(["email", "new_password", "new_password_confirmation"]),
             [   // rules
                 "email" => "email|required|max:100",
-                "new_password" => "required|string|max:100|min:6",
-                "new_password_confirmation" => "required|string|max:100|min:6|same:new_password",
+                "new_password" => "required|string|max:100|min:8",
+                "new_password_confirmation" => "required|string|max:100|min:8|same:new_password",
             ]
         );
+
+        if (
+            $validator->validated()['new_password']
+            != $validator->validated()["new_password_confirmation"]
+        ) return response()->json(['error_message' => 'Password not match!']);
 
         $isUpdateSuccess = User::where("email", $validator->validated()['email'])
             ->update([

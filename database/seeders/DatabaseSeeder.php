@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Helpers\StrHelper;
 use App\Models\Contact;
 use Faker\Factory as WithFaker;
 use Illuminate\Database\Seeder;
@@ -31,7 +32,8 @@ class DatabaseSeeder extends Seeder
             "name" => ucwords("muhammad arfan"),
             "email" => "arf@gm.com",
             "email_verified_at" => now()->toDateTimeString(),
-            "password" => bcrypt("11112222")
+            "password" => bcrypt("11112222"),
+            "profile_pict" => "#" . StrHelper::random(6, "1234567890ABCDEF"),
         ])->each(function (\App\Models\User $user) {
             \App\Models\UserSetting::factory()->count(1)->create(['user_id' => $user->id, "two_factor_auth" => false]);
             \App\Models\Wallet::factory()->count(1)->create(['user_id' => $user->id]);
