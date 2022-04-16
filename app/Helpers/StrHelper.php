@@ -73,6 +73,8 @@ class StrHelper
     {
         $amount =  is_string($this->string) ?  floatval($this->string) : $this->string;
         $formatedAmount = number_format($amount, 2, ".", ",");
-        return $currencySymbol ? "$" . $formatedAmount  : $formatedAmount;
+        $this->string =  $currencySymbol ? "$" . $formatedAmount  : $formatedAmount;
+
+        return $this;
     }
 }
