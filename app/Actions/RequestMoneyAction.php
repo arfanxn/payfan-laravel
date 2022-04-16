@@ -119,13 +119,14 @@ class RequestMoneyAction extends TransactionActionAbstract
             $beingRequestedWallet = $order->toWallet->address;
             $requesterWallet = $order->fromWallet->address;
 
-            $requesterWalletData = Wallet::where("address", $requesterWallet)
-                ->where("balance", ">=", ($amountAndCharge))->first();
+            $requesterWalletData = Wallet::where("address", $requesterWallet)->first();
 
             // check is fromWallet exist and valid
             // if valid and also exist , add the amount to fromWallet balance 
             if ($requesterWalletData) {
                 $requesterWalletData->increment("balance");
+                $requesterWalletData->increment("total_transaction", 1);
+                $requesterWalletData->last_transaction  = now()->toDateTimeString();
                 $requesterWalletData->save();
             } else throw new TransactionException("Wallet address not found or Invalid!");
             // end
@@ -134,8 +135,10 @@ class RequestMoneyAction extends TransactionActionAbstract
 
             // check is toWallet valid/exist and balance enough for doing this transfer process
             // if exist -> subtract the toWallet balance
-            if ($beingRequestedWalletData && (floatval($beingRequestedWalletData->balance) >= $amountAndCharge)) {
+            if ($beingRequestedWalletData && (($beingRequestedWalletData->balance) >= $amountAndCharge)) {
                 $beingRequestedWalletData->decrement("balance", $amountAndCharge);
+                $beingRequestedWalletData->increment("total_transaction", 1);
+                $beingRequestedWalletData->last_transaction  = now()->toDateTimeString();
                 $beingRequestedWalletData->save();
             } else throw new TransactionException("Wallet balance is not enough!");
             // end 
@@ -169,17 +172,11 @@ class RequestMoneyAction extends TransactionActionAbstract
             // end
 
             $approvedOrder = $approvedOrder->first();
-            DB::commit();
 
-            // update related 
-            Wallet::query()->where(fn ($q) => $q->whereIn(
-                "id",
-                [$requesterWalletData->id, $beingRequestedWallet->id]
-            ));
             ContactRepository::incrementAndUpdate_LastTransactionAndTotalTransaction_whereOwnerIdOrSavedId(
-                [$order["user_id"] ?? $order->user_id, $approvedOrder['user_id']/**/],
+                [$order["user_id"] ?? $order->user_id, $approvedOrder->user_id ?? $approvedOrder['user_id']/**/],
             );
-            // end
+            DB::commit();
 
             Notification::send(
                 User::query()->where("id", $order->user_id)->first()  /**/,

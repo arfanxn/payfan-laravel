@@ -51,6 +51,8 @@ class SendMoneyAction extends TransactionActionAbstract
             // if exist -> subtract the fromWallet balance
             if ($fromWalletData) {
                 $fromWalletData->decrement("balance", $amountAndCharge);
+                $fromWalletData->increment("total_transaction", 1);
+                $fromWalletData->last_transaction  = now()->toDateTimeString();
                 $fromWalletData->save();
             } else {
                 throw new TransactionException("Wallet balance is not enough!");
@@ -63,6 +65,8 @@ class SendMoneyAction extends TransactionActionAbstract
             // if valid and also exist , add the amount to toWallet balance
             if ($toWalletData) {
                 $toWalletData->increment("balance", $amount);
+                $toWalletData->increment("total_transaction", 1);
+                $toWalletData->last_transaction  = now()->toDateTimeString();
                 $toWalletData->save();
             } else {
                 throw new TransactionException("Wallet address not found or Invalid!");
@@ -117,17 +121,11 @@ class SendMoneyAction extends TransactionActionAbstract
                 $receiverOrder // create a new order for receiver account 
             ]);
 
-            DB::commit();
-
-            // update related
-            Wallet::query()->where(fn ($q) => $q->whereIn(
-                "id",
-                [$fromWalletData->id, $toWalletData->id]
-            ));
             ContactRepository::incrementAndUpdate_LastTransactionAndTotalTransaction_whereOwnerIdOrSavedId(
                 [$senderOrder['user_id'], $receiverOrder['user_id']/**/],
             );
-            // end
+
+            DB::commit();
 
             Notification::send(
                 User::where("id", $senderOrder['user_id'])->first(),
@@ -138,8 +136,6 @@ class SendMoneyAction extends TransactionActionAbstract
                 new ReceivingMoneyNotification(new \App\Models\Order($senderOrder))
             );
 
-            // broadcast(new WalletUpdatedEvent($fromWalletData))->toOthers();
-            // broadcast(new PaymentStatusCompletedEvent(new Order($senderOrder)))->toOthers();
             broadcast(new WalletUpdatedEvent($toWalletData))->toOthers();
             broadcast(new PaymentStatusCompletedEvent(new Order($receiverOrder)))->toOthers();
 
