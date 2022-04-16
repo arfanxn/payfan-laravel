@@ -41,7 +41,8 @@ class ContactController extends Controller
         $offset = ($currentPage * $perPage) - $perPage;
 
         $contactQuery = Contact::with(['user.wallet'])->offset($offset)->limit($perPage)
-            ->where(fn ($q) => $q->where("owner_id", Auth::id()));
+            ->where(fn ($q) => $q->where("owner_id", Auth::id())
+                ->where("saved_id", "!=", Auth::id())/**/);
 
         $contacts = ContactRepository::filters([
             // "filter" => $validatorValidated['filter'] ?? null,
@@ -64,17 +65,17 @@ class ContactController extends Controller
         return response()->json(compact("contacts"));
     }
 
-    public function lastTransactionDetail(Contact $contact)
+    public function lastTransactionDetails(Contact $contact)
     {
         if (Gate::denies("has-contact", $contact)) return response("Forbidden", 403);
 
         $contact = $contact->load("user.wallet");
-        $lastTransaction  = Order::query()->where("user_id", $contact->user->id)
-            ->where("status", Order::STATUS_COMPLETED)
+        $lastTransaction  = Order::query()->where("user_id", Auth::id())
+            // ->where("status", Order::STATUS_COMPLETED)
             ->where(
                 fn ($query) => $query->where("from_wallet", $contact->user->wallet->id)
-                    ->orWhere("from_wallet", $contact->user->wallet->id)
-            )->orderBy("completed_at", 'desc')->first();
+                    ->orWhere("to_wallet", $contact->user->wallet->id)
+            )->orderBy("started_at", 'desc')->first();
 
         return response()->json(["last_transaction" => $lastTransaction]);
     }
