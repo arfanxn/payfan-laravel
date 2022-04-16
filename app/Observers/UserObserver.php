@@ -25,7 +25,7 @@ class UserObserver
             "payment_notification" => 1,
             "request_notification" => 1,
             "receive_notification" => 1,
-            'updated_at' => null,
+            'updated_at' => now()->toDateTimeString(),
         ]);
     }
 }

@@ -71,7 +71,7 @@ class RequestPaymentAction extends TransactionActionAbstract
                 "amount" => $amount,
                 "created_at" => $now->toDateTimeString(),
                 "completed_at" => null,
-                "updated_at" => null,
+                "updated_at" => $now->toDateTimeString(),
             ];
             $requestedPayment = [ // create a new payment for  account that being requested payment
                 "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
@@ -86,7 +86,7 @@ class RequestPaymentAction extends TransactionActionAbstract
                 "charge" => $charge,
                 "created_at" => $now->toDateTimeString(),
                 "completed_at" => null,
-                "updated_at" => null,
+                "updated_at" => $now->toDateTimeString(),
             ];
 
             Payment::insert([$requestingPayment, $requestedPayment]);
@@ -162,7 +162,8 @@ class RequestPaymentAction extends TransactionActionAbstract
                     // update 2 related payment 
                     $paymentQuery->update([
                         "status" => Payment::STATUS_COMPLETED,
-                        "completed_at" => $completedAt
+                        "completed_at" => $completedAt,
+                        "updated_at" => $completedAt
                     ]);
                     // get where clause user_id not equal to payment->user_id
                     return $paymentQuery->where("user_id", "!=", $payment->user_id);
@@ -221,6 +222,7 @@ class RequestPaymentAction extends TransactionActionAbstract
                     // update 2 related payment 
                     $userQuery->update([
                         "status" => Payment::STATUS_REJECTED,
+                        "updated_at" => now()->toDateTimeString()
                     ]);
                     // get where clause user_id not equal to payment->user_id
                     return ($userQuery->where("user_id", "!=", $payment->user_id));

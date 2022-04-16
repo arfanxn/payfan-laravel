@@ -41,7 +41,7 @@ class TransactionSeeder extends Seeder
                 "charge" => $transaction->charge,
                 "created_at" => $randomDateTime->toDateTimeString(),
                 "completed_at" => $randomDateTime->addDays(rand(1, 2))->toDateTimeString(),
-                "updated_at" => null,
+                "updated_at" => $randomDateTime->toDateTimeString(),
             ];
             $payment2 = array_merge($payment1, [
                 "id" => strtoupper(StrHelper::random(14))  . $randomDateTime->timestamp,
@@ -70,7 +70,7 @@ class TransactionSeeder extends Seeder
                 "charge" => $transaction->charge,
                 "created_at" => $randomDateTime->toDateTimeString(),
                 "completed_at" => $randomDateTime->addDay()->toDateTimeString(),
-                "updated_at" => null,
+                "updated_at" => $randomDateTime->toDateTimeString(),
             ];
             Payment::create($paymentTypeGift);
         });

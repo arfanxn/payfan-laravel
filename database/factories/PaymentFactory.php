@@ -23,7 +23,7 @@ class PaymentFactory extends Factory
             "amount" => rand(1, 999999) . "." . rand(1, 99),
             "created_at" => $now->toDateTimeString(),
             "completed_at" => $now->toDateTimeString(),
-            "updated_at" => null,
+            "updated_at" => $now->toDateTimeString(),
 
             //fill these attributes with function parameters 
             // "user_id" => $fromWalletData->user_id, 

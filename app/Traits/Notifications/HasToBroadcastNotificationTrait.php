@@ -25,7 +25,7 @@ trait HasToBroadcastNotificationTrait
             "notifiable_type" => get_class($notifiable),
             "data" =>  $data,
             "created_at" => now()->toIsoString(),
-            "updated_at" => null,
+            "updated_at" => now()->toIsoString(),
             "read_at" => null,
         ])/**/);
     }

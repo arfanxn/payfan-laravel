@@ -99,7 +99,7 @@ class SendPaymentAction extends TransactionActionAbstract
                 "charge" => $charge,
                 "created_at" => $now->toDateTimeString(),
                 "completed_at" => $now->toDateTimeString(),
-                "updated_at" => null,
+                "updated_at" => $now->toDateTimeString(),
             ];
             $receiverPayment = [
                 "id" => strtoupper(StrHelper::random(14)) . $now->timestamp,
@@ -114,7 +114,7 @@ class SendPaymentAction extends TransactionActionAbstract
                 "charge" => 0,
                 "created_at" => $now->toDateTimeString(),
                 "completed_at" => $now->toDateTimeString(),
-                "updated_at" => null,
+                "updated_at" => $now->toDateTimeString(),
             ];
 
             Payment::insert([
