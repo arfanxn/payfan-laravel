@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+use Illuminate\Support\Str;
+
 class StrHelper
 {
     protected $string;
@@ -65,5 +67,12 @@ class StrHelper
     {
         $this->string = substr($this->string, 0,  $limit);
         return $this;
+    }
+
+    public function toUSD($currencySymbol = false)
+    {
+        $amount =  is_string($this->string) ?  floatval($this->string) : $this->string;
+        $formatedAmount = number_format($amount, 2, ".", ",");
+        return $currencySymbol ? "$" . $formatedAmount  : $formatedAmount;
     }
 }
