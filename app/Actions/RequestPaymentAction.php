@@ -103,8 +103,10 @@ class RequestPaymentAction extends TransactionActionAbstract
                 new NewRequestedPaymentNotification(new Payment($requestedPayment))
             );
 
+            // broadcast to self
+            broadcast(new PaymentSavedEvent(new Payment($requestingPayment)));
             // broadcast to account that being requested a payment 
-            broadcast(new PaymentSavedEvent(new Payment($requestedPayment)))->toOthers();
+            broadcast(new PaymentSavedEvent(new Payment($requestedPayment)));
 
             return $requestingPayment;
         } catch (\Exception | \Throwable $e) {
@@ -191,9 +193,11 @@ class RequestPaymentAction extends TransactionActionAbstract
                 new ApprovedRequestPaymentNotification($approvedPayment)
             );
 
+
+            broadcast(new PaymentSavedEvent($payment)); // broadcast to self
             broadcast(new WalletUpdatedEvent($requesterWalletData))->toOthers();
-            broadcast(new PaymentStatusCompletedEvent($approvedPayment))->toOthers();
-            broadcast(new PaymentSavedEvent($approvedPayment))->toOthers();
+            broadcast(new PaymentStatusCompletedEvent($approvedPayment));
+            broadcast(new PaymentSavedEvent($approvedPayment));
 
             return $payment; // return the updated payment object 
         } catch (\Exception | \Throwable $e) {
@@ -243,7 +247,8 @@ class RequestPaymentAction extends TransactionActionAbstract
                 new RejectedRequestPaymentNotification($rejectedPayment)
             );
 
-            broadcast(new PaymentSavedEvent($rejectedPayment))->toOthers();
+            broadcast(new PaymentSavedEvent($payment)); // broadcast to self
+            broadcast(new PaymentSavedEvent($rejectedPayment));
 
             return $payment; // return the updated payment object 
         } catch (\Exception | \Throwable $e) {

@@ -138,13 +138,14 @@ class SendPaymentAction extends TransactionActionAbstract
             );
 
             // broadcast payment created or updated event (PaymentSavedEvent) 
-            broadcast(new PaymentSavedEvent(new Payment($receiverPayment)))->toOthers();
+            broadcast(new PaymentSavedEvent(new Payment($receiverPayment)));
+            broadcast(new PaymentSavedEvent(new Payment($senderPayment))); // broadcast to self 
 
             // broadcast updatedWallet
             broadcast(new WalletUpdatedEvent($toWalletData))->toOthers();
 
             // broadcast payment status completed event 
-            broadcast(new PaymentStatusCompletedEvent(new Payment($receiverPayment)))->toOthers();
+            broadcast(new PaymentStatusCompletedEvent(new Payment($receiverPayment)));
 
 
             return $senderPayment;
