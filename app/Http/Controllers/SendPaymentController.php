@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\SendMoneyAction;
+use App\Actions\SendPaymentAction;
 use App\Models\Transaction;
 use App\Responses\ErrorsResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
-class SendMoneyController extends Controller
+class SendPaymentController extends Controller
 {
-    public function __invoke(Request $request, SendMoneyAction $sendMoney)
+    public function __invoke(Request $request, SendPaymentAction $sendPayment)
     {
         $validator = Validator::make($request->all(), [
             "note" => "nullable|string|max:255",
@@ -26,20 +26,20 @@ class SendMoneyController extends Controller
         $note = $validator->validated()['note']  ?? "";
         $toWalletAddress = $validator->validated()['to_wallet'];
 
-        $sendMoneyData = $sendMoney->setFromWallet(Auth::user()->wallet)->setToWallet($toWalletAddress)
+        $sendPaymentData = $sendPayment->setFromWallet(Auth::user()->wallet)->setToWallet($toWalletAddress)
             ->setAmount($amount)->setCharge($charge)->setNote($note)->exec();
 
-        if ($sendMoneyData instanceof \Exception) {
-            if ($sendMoneyData instanceof \App\Exceptions\TransactionException)
-                return response()->json(['error_message' => $sendMoneyData->getMessage()], 300);
+        if ($sendPaymentData instanceof \Exception) {
+            if ($sendPaymentData instanceof \App\Exceptions\TransactionException)
+                return response()->json(['error_message' => $sendPaymentData->getMessage()], 300);
 
             return app()->environment(['local', "debug", "debugging"]) ?
-                response()->json(['error_message' => $sendMoneyData->getMessage()], 500)
+                response()->json(['error_message' => $sendPaymentData->getMessage()], 500)
                 : ErrorsResponse::server();
         }
 
-        return $sendMoneyData ?
-            response()->json(['message' => "Send money successfully.", "invoice" => $sendMoneyData])
+        return $sendPaymentData ?
+            response()->json(['message' => "Send payment successfully.", "invoice" => $sendPaymentData])
             : ErrorsResponse::server();
     }
 }

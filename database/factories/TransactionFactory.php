@@ -19,7 +19,7 @@ class TransactionFactory extends Factory
         $toWalletID = rand(2, 6);
 
         // $status = [Transaction::STATUS_PENDING, Transaction::STATUS_COMPLETED, Transaction::STATUS_FAILED, TRANSACTION::STATUS_REJECTED];
-        // $type = [Transaction::TYPE_REQUEST_MONEY, Transaction::TYPE_SEND_MONEY, Transaction::TYPE_REWARD];
+        // $type = [Transaction::TYPE_REQUEST , Transaction::TYPE_SEND , Transaction::TYPE_REWARD];
         $transactionID = strtoupper(StrHelper::random(14)) . now()->timestamp;
         return [
             "id" =>  $transactionID,

@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use App\Traits\HasPaginationResourceCollectionTrait;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class OrderCollection extends ResourceCollection
+class PaymentCollection extends ResourceCollection
 {
     use HasPaginationResourceCollectionTrait;
 
@@ -18,7 +18,7 @@ class OrderCollection extends ResourceCollection
     public function toArray($request)
     {
         return array_merge($this->pagination, [
-            'data' => OrderResource::collection($this->collection),
+            'data' => PaymentResource::collection($this->collection),
         ]);
     }
 }

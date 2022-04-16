@@ -2,16 +2,17 @@
 
 namespace App\Actions;
 
+use App\Events\PaymentSavedEvent;
 use App\Events\PaymentStatusCompletedEvent;
 use App\Events\WalletUpdatedEvent;
 use App\Exceptions\TransactionException;
 use App\Helpers\StrHelper;
-use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
-use App\Notifications\Transactions\ReceivingMoneyNotification;
-use App\Notifications\Transactions\SendMoneyNotification;
+use App\Notifications\Transactions\ReceivingPaymentNotification;
+use App\Notifications\Transactions\SendPaymentNotification;
 use App\Repositories\ContactRepository;
 use Exception;
 use Illuminate\Database\QueryException;
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
-class SendMoneyAction extends TransactionActionAbstract
+class SendPaymentAction extends TransactionActionAbstract
 {
     public function exec(): array |TransactionException | QueryException| Exception
     {
@@ -73,7 +74,7 @@ class SendMoneyAction extends TransactionActionAbstract
             }
             // end
 
-            // make the transaction and  orders  
+            // make the transaction and  payments  
             $now = now();
             $transactionID = strtoupper(StrHelper::random(14)) . $now->timestamp;
             Transaction::create([
@@ -85,30 +86,30 @@ class SendMoneyAction extends TransactionActionAbstract
                 "created_at" => $now->toDateTimeString(),
                 "status" => Transaction::STATUS_COMPLETED,
             ]); // end
-            $senderOrder = [ // create a new order for sender account
+            $senderPayment = [ // create a new payment for sender account
                 "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
                 "user_id" => $fromWalletData->user_id,
                 "from_wallet" => $fromWalletData->id,
                 "to_wallet" => $toWalletData->id,
                 "transaction_id" => $transactionID,
                 "note" => $note,
-                "type" => Order::TYPE_SENDING_MONEY,
-                "status" => Order::STATUS_COMPLETED,
+                "type" => Payment::TYPE_SENDING,
+                "status" => Payment::STATUS_COMPLETED,
                 "amount" => $amount,
                 "charge" => $charge,
                 "started_at" => $now->toDateTimeString(),
                 "completed_at" => $now->toDateTimeString(),
                 "updated_at" => null,
             ];
-            $receiverOrder = [
+            $receiverPayment = [
                 "id" => strtoupper(StrHelper::random(14)) . $now->timestamp,
                 "user_id" => $toWalletData->user_id,
                 "from_wallet" => $fromWalletData->id,
                 "to_wallet" => $toWalletData->id,
                 "transaction_id" => $transactionID,
                 "note" => $note,
-                "type" => Order::TYPE_RECEIVING_MONEY,
-                "status" => Order::STATUS_COMPLETED,
+                "type" => Payment::TYPE_RECEIVING,
+                "status" => Payment::STATUS_COMPLETED,
                 "amount" => $amount,
                 "charge" => 0,
                 "started_at" => $now->toDateTimeString(),
@@ -116,30 +117,37 @@ class SendMoneyAction extends TransactionActionAbstract
                 "updated_at" => null,
             ];
 
-            Order::insert([
-                $senderOrder /*create a new order for sender account*/,
-                $receiverOrder // create a new order for receiver account 
+            Payment::insert([
+                $senderPayment /*create a new payment for sender account*/,
+                $receiverPayment // create a new payment for receiver account 
             ]);
 
             ContactRepository::incrementAndUpdate_LastTransactionAndTotalTransaction_whereOwnerIdOrSavedId(
-                [$senderOrder['user_id'], $receiverOrder['user_id']/**/],
+                [$senderPayment['user_id'], $receiverPayment['user_id']/**/],
             );
 
             DB::commit();
 
             Notification::send(
-                User::where("id", $senderOrder['user_id'])->first(),
-                new SendMoneyNotification(new \App\Models\Order($senderOrder))
+                User::where("id", $senderPayment['user_id'])->first(),
+                new SendPaymentNotification(new \App\Models\Payment($senderPayment))
             );
             Notification::send(
-                User::where("id", $receiverOrder['user_id'])->first(),
-                new ReceivingMoneyNotification(new \App\Models\Order($senderOrder))
+                User::where("id", $receiverPayment['user_id'])->first(),
+                new ReceivingPaymentNotification(new \App\Models\Payment($senderPayment))
             );
 
-            broadcast(new WalletUpdatedEvent($toWalletData))->toOthers();
-            broadcast(new PaymentStatusCompletedEvent(new Order($receiverOrder)))->toOthers();
+            // broadcast payment created or updated event (PaymentSavedEvent) 
+            broadcast(new PaymentSavedEvent(new Payment($receiverPayment)))->toOthers();
 
-            return $senderOrder;
+            // broadcast updatedWallet
+            broadcast(new WalletUpdatedEvent($toWalletData))->toOthers();
+
+            // broadcast payment status completed event 
+            broadcast(new PaymentStatusCompletedEvent(new Payment($receiverPayment)))->toOthers();
+
+
+            return $senderPayment;
         } catch (\Exception | \Throwable $e) {
             DB::rollBack();
             return $e;

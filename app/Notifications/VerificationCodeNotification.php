@@ -3,7 +3,7 @@
 namespace App\Notifications;
 
 use App\Helpers\URLHelper;
-use App\Models\Order;
+use App\Models\Payment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;

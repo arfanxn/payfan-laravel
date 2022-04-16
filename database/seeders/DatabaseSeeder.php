@@ -23,10 +23,7 @@ class DatabaseSeeder extends Seeder
             "email_verified_at" => now()->toDateTimeString(),
             "profile_pict" => "#003087",
             "password" => bcrypt("11112222")
-        ])->each(function (\App\Models\User $user) {
-            \App\Models\UserSetting::factory()->count(1)->create(['user_id' => $user->id, "two_factor_auth" => false]);
-            \App\Models\Wallet::factory()->count(1)->create(['user_id' => $user->id, "balance" => floatval("9999999999999999.00")]);
-        });
+        ]);
 
         \App\Models\User::factory(1)->create([
             "name" => ucwords("muhammad arfan"),
@@ -34,17 +31,11 @@ class DatabaseSeeder extends Seeder
             "email_verified_at" => now()->toDateTimeString(),
             "password" => bcrypt("11112222"),
             "profile_pict" => "#" . StrHelper::random(6, "1234567890ABCDEF"),
-        ])->each(function (\App\Models\User $user) {
-            \App\Models\UserSetting::factory()->count(1)->create(['user_id' => $user->id, "two_factor_auth" => false]);
-            \App\Models\Wallet::factory()->count(1)->create(['user_id' => $user->id]);
-        });
+        ]);
 
         $totalSeed = 500;
 
-        \App\Models\User::factory()->count($totalSeed)->create()->each(function (\App\Models\User $user) use ($faker_ID,) {
-            \App\Models\UserSetting::factory()->count(1)->create(['user_id' => $user->id]);
-            \App\Models\Wallet::factory()->count(1)->create(['user_id' => $user->id,]);
-        });
+        \App\Models\User::factory()->count($totalSeed)->create();
 
         for ($i = 1; $i <= $totalSeed; $i++) {
             $status = rand(1, 3);
@@ -70,6 +61,8 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(TransactionSeeder::class,  false, ["total" => $totalSeed]);
-        $this->call(NotificationSeeder::class, false, ['total' => $totalSeed]);
+        // $this->call(NotificationSeeder::class, false, ['total' => $totalSeed]);
+
+        \App\Models\Wallet::query()->where("user_id", "<=", 5)->update(['balance' => rand(1000000000000, 9999999999999)]);
     }
 }

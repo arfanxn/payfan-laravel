@@ -6,7 +6,7 @@ use DateTime;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Order extends Model
+class Payment extends Model
 {
     use HasFactory;
 
@@ -52,11 +52,11 @@ class Order extends Model
 
 
     public const
-        TYPE_SENDING_MONEY = 'SENDING MONEY',
-        TYPE_RECEIVING_MONEY = 'RECEIVING MONEY',
+        TYPE_SENDING  = 'SENDING PAYMENT',
+        TYPE_RECEIVING  = 'RECEIVING PAYMENT',
         /**/
-        TYPE_REQUESTING_MONEY = 'REQUESTING MONEY',
-        TYPE_REQUESTED_MONEY = 'REQUESTED MONEY';
+        TYPE_REQUESTING  = 'REQUESTING PAYMENT',
+        TYPE_REQUESTED  = 'REQUESTED PAYMENT';
     public final static function TYPE_GIFT_FROM(string $from = null): string
     {
         $from = is_null($from) ? config("app.name") : $from;

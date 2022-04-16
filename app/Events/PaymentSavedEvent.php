@@ -11,23 +11,20 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class PaymentStatusCompletedEvent
+class PaymentSavedEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public Payment $payment;
+    public $payment;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(Payment|string|int $payment)
+    public function __construct(Payment $payment)
     {
-        if ($payment instanceof Payment)
-            $this->payment = $payment;
-        else
-            $this->payment = Payment::query()->where("id", $payment)->first();
+        $this->payment = $payment->load(['fromWallet.user', "toWallet.user"]);
     }
 
     /**
@@ -37,6 +34,6 @@ class PaymentStatusCompletedEvent
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('payments.' . $this->payment->id);
+        return new PrivateChannel('payments.' . $this->payment->user_id);
     }
 }

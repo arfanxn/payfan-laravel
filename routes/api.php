@@ -6,10 +6,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\RequestMoneyController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\RequestPaymentController;
 use App\Http\Controllers\SearchPeopleController;
-use App\Http\Controllers\SendMoneyController;
+use App\Http\Controllers\SendPaymentController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserSettingController;
@@ -105,16 +105,16 @@ Route::prefix("user")->middleware("api")->group(function () {
                 Route::patch("/{contact:id}/unblock", [ContactController::class, "unblock"]);
             });
 
-            Route::get("orders", [OrderController::class, "index"]);
-            Route::get("order/{order:id}", [OrderController::class, "show"]);
+            Route::get("payments", [PaymentController::class, "index"]);
+            Route::get("payment/{payment:id}", [PaymentController::class, "show"]);
             Route::prefix("transaction")->group(function () {
-                Route::post("/send-money", SendMoneyController::class)->middleware("verification_code.verify");
-                Route::post("/request-money/make", [RequestMoneyController::class, "make"]);
+                Route::post("/send-payment", SendPaymentController::class)->middleware("verification_code.verify");
+                Route::post("/request-payment/make", [RequestPaymentController::class, "make"]);
                 Route::patch(
-                    "/request-money/order/{order:id}/approve",
-                    [RequestMoneyController::class, "approve"]
+                    "/request-payment/payment/{payment:id}/approve",
+                    [RequestPaymentController::class, "approve"]
                 )->middleware("verification_code.verify");
-                Route::patch("/request-money/order/{order:id}/reject", [RequestMoneyController::class, "reject"]);
+                Route::patch("/request-payment/payment/{payment:id}/reject", [RequestPaymentController::class, "reject"]);
             });
 
             Route::prefix("notifications")->group(function () { // pluralize

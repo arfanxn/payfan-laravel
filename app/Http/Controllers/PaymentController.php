@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\OrderCollection;
+use App\Http\Resources\PaymentCollection;
 use App\Http\Resources\TransactionCollection;
 use App\Models\Transaction;
-use App\Models\Order;
-use App\Repositories\OrderRepository;
+use App\Models\Payment;
+use App\Repositories\PaymentRepository;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-class OrderController extends Controller
+class PaymentController extends Controller
 {
     public function index(Request $request)
     {
@@ -40,26 +40,26 @@ class OrderController extends Controller
         $currentPage = $validatorValidated["page"] ?? 1;
         $offset = ($currentPage * $perPage) - $perPage;
 
-        $orderQuery = Order::with(['fromWallet.user', "toWallet.user",])
+        $paymentQuery = Payment::with(['fromWallet.user', "toWallet.user",])
             ->offset($offset)->limit($perPage)
             ->where(fn ($q) => $q->where("user_id", Auth::id() /**/) /**/);
 
-        $orders = OrderRepository::filters([
+        $payments = PaymentRepository::filters([
             "keyword" => $validatorValidated['keyword'] ?? null,
             "start_at" => $validatorValidated['start_at'] ?? null,
             "end_at" => $validatorValidated['end_at'] ?? null,
             "status" => $validatorValidated['status'] ?? null,
             "type" => $validatorValidated['type'] ?? null,
-        ], $orderQuery)
+        ], $paymentQuery)
             ->orderBy("started_at", "desc")
             ->get();
 
-        $ordersGrouped  = $orders->groupBy(
-            fn (\App\Models\Order $order) => \Carbon\Carbon::parse($order->started_at)->format('Y-m'),
+        $paymentsGrouped  = $payments->groupBy(
+            fn (\App\Models\Payment $payment) => \Carbon\Carbon::parse($payment->started_at)->format('Y-m'),
         );
 
-        $ordersPaginator = (new \Illuminate\Pagination\Paginator(
-            $ordersGrouped->toArray(),
+        $paymentsPaginator = (new \Illuminate\Pagination\Paginator(
+            $paymentsGrouped->toArray(),
             // $users->count(),
             $perPage,
             $currentPage,
@@ -68,11 +68,11 @@ class OrderController extends Controller
                 'query' => request()->query(),
             ]
         ));
-        $additionalsPagination  = collect(["total_retrived" => $orders->count()]);
+        $additionalsPagination  = collect(["total_retrived" => $payments->count()]);
 
-        $mergedPaginationWithAdditionals =  $additionalsPagination->merge($ordersPaginator);
+        $mergedPaginationWithAdditionals =  $additionalsPagination->merge($paymentsPaginator);
 
-        return  response()->json(['orders' => $mergedPaginationWithAdditionals]);
+        return  response()->json(['payments' => $mergedPaginationWithAdditionals]);
     }
 
     /**
@@ -102,9 +102,9 @@ class OrderController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(Order $order)
+    public function show(Payment $payment)
     {
-        if (Gate::denies("has-order", $order)) return response("Forbidden", 403);
-        return response()->json(["order" => $order]);
+        if (Gate::denies("has-payment", $payment)) return response("Forbidden", 403);
+        return response()->json(["payment" => $payment]);
     }
 }

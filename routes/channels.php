@@ -25,7 +25,6 @@ Broadcast::channel('wallets.{id}', function ($user, $id) {
     return intval($user->id) === intval($wallet->user_id ?? null);
 });
 
-Broadcast::channel('payments.{uuid}', function ($user, $uuid) {
-    $payment = \App\Models\Order::query()->where("id", $uuid)->first();
-    return intval($user->id) === intval($payment->user_id ?? null);
+Broadcast::channel('payments.{id}', function ($user, $id) {
+    return intval($user->id) === intval($id ?? null);
 });

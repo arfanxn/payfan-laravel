@@ -3,7 +3,7 @@
 namespace App\Notifications\Transactions;
 
 use App\Helpers\URLHelper;
-use App\Models\Order;
+use App\Models\Payment;
 use App\Traits\Notifications\HasToBroadcastNotificationTrait;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -15,24 +15,24 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 
-class SendMoneyNotification extends Notification implements ShouldBroadcast,  ShouldQueue
+class SendPaymentNotification extends Notification implements ShouldBroadcast,  ShouldQueue
 {
     use Queueable;
     use HasToBroadcastNotificationTrait;
 
-    public Order $order;
+    public Payment $payment;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct(Order $order)
+    public function __construct(Payment $payment)
     {
-        if (!$order->relationLoaded("toWallet.user") || !$order->relationLoaded("fromWallet.user"))
-            $order = $order->load(["toWallet.user", "fromWallet.user"]);
+        if (!$payment->relationLoaded("toWallet.user") || !$payment->relationLoaded("fromWallet.user"))
+            $payment = $payment->load(["toWallet.user", "fromWallet.user"]);
 
-        $this->order = $order;
+        $this->payment = $payment;
     }
 
     /**
@@ -57,23 +57,23 @@ class SendMoneyNotification extends Notification implements ShouldBroadcast,  Sh
      */
     public function toMail($notifiable)
     {
-        $total = floatval($this->order->amount) + floatval($this->order->charge);
+        $total = floatval($this->payment->amount) + floatval($this->payment->charge);
         $total = Str::contains($total, ".") ? $total . " $" : $total . ".00 $";
 
         return (new MailMessage)
-            ->subject('Send money to "'
-                . substr($this->order->toWallet->user->name, 0, 10)  . '" successfully | ' . config('app.name'))
+            ->subject('Send payment to "'
+                . substr($this->payment->toWallet->user->name, 0, 10)  . '" successfully | ' . config('app.name'))
             ->greeting("Hello, $notifiable->name .")
-            ->line('Your transaction to "' . $this->order->toWallet->user->name . '" successfully.')
-            ->line('Sender name : ' . $this->order->fromWallet->user->name)
-            ->line('Receiver name : ' . $this->order->toWallet->user->name)
-            ->line('Amount : ' . $this->order->amount . " $")
-            ->line('Charge : ' . $this->order->charge . " $")
+            ->line('Your transaction to "' . $this->payment->toWallet->user->name . '" successfully.')
+            ->line('Sender name : ' . $this->payment->fromWallet->user->name)
+            ->line('Receiver name : ' . $this->payment->toWallet->user->name)
+            ->line('Amount : ' . $this->payment->amount . " $")
+            ->line('Charge : ' . $this->payment->charge . " $")
             ->line('Total : ' . $total)
-            ->line('Completed at : ' . Carbon::parse($this->order->completed_at)->toDateTimeString() . " UTC")
-            ->line('Order ID : ' . $this->order->id)
-            ->line('Transaction ID : ' . $this->order->transaction_id)
-            ->action('View Invoice', URLHelper::frontendWeb('/activity?keyword=' . $this->order->id))
+            ->line('Completed at : ' . Carbon::parse($this->payment->completed_at)->toDateTimeString() . " UTC")
+            ->line('Payment ID : ' . $this->payment->id)
+            ->line('Transaction ID : ' . $this->payment->transaction_id)
+            ->action('View Invoice', URLHelper::frontendWeb('/activity?keyword=' . $this->payment->id))
             ->line('Thank you for using our application!');
     }
 
@@ -86,15 +86,15 @@ class SendMoneyNotification extends Notification implements ShouldBroadcast,  Sh
     public function toArray($notifiable)
     {
         return [
-            "header" => "Send money successfully",
+            "header" => "Send payment successfully",
             "body" =>
-            'Send money to "' . substr($this->order->toWallet->user->name, 0, 15)
-                . '", amount ' . $this->order->amount . " $.",
+            'Send payment to "' . substr($this->payment->toWallet->user->name, 0, 15)
+                . '", amount ' . $this->payment->amount . " $.",
             "action" => [
                 "text" => "View Invoice",
-                "url" => URLHelper::frontendWeb("activity?keyword=" . $this->order->id),
+                "url" => URLHelper::frontendWeb("activity?keyword=" . $this->payment->id),
                 "query" => [
-                    "order_id" => $this->order->id
+                    "payment_id" => $this->payment->id
                 ]
             ]
         ];

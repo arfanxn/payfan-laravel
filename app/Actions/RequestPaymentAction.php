@@ -2,26 +2,27 @@
 
 namespace App\Actions;
 
+use App\Events\PaymentSavedEvent;
 use App\Events\PaymentStatusCompletedEvent;
 use App\Events\WalletUpdatedEvent;
 use App\Exceptions\TransactionException;
 use App\Helpers\StrHelper;
-use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
-use App\Notifications\Transactions\ApprovedRequestMoneyNotification;
-use App\Notifications\Transactions\ApprovingRequestMoneyNotification;
-use App\Notifications\Transactions\MakeRequestingMoneyNotification;
-use App\Notifications\Transactions\NewRequestedMoneyNotification;
-use App\Notifications\Transactions\RejectedRequestMoneyNotification;
-use App\Notifications\Transactions\RejectingRequestMoneyNotification;
+use App\Notifications\Transactions\ApprovedRequestPaymentNotification;
+use App\Notifications\Transactions\ApprovingRequestPaymentNotification;
+use App\Notifications\Transactions\MakeRequestingPaymentNotification;
+use App\Notifications\Transactions\NewRequestedPaymentNotification;
+use App\Notifications\Transactions\RejectedRequestPaymentNotification;
+use App\Notifications\Transactions\RejectingRequestPaymentNotification;
 use App\Repositories\ContactRepository;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
-class RequestMoneyAction extends TransactionActionAbstract
+class RequestPaymentAction extends TransactionActionAbstract
 {
     public function make()
     {
@@ -57,30 +58,30 @@ class RequestMoneyAction extends TransactionActionAbstract
                 "status" => Transaction::STATUS_PENDING,
                 "created_at" => $now->toDateTimeString(),
             ]);
-            $requestingOrder = [ // create a new order for requester money/payment account
+            $requestingPayment = [ // create a new payment for requester payment account
                 "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
                 "user_id" => $requesterWalletData->user_id,
                 "from_wallet" => $requesterWalletData->id,
                 "to_wallet" => $beingRequestedWalletData->id,
                 "transaction_id" => $transactionID,
                 "note" => $note,
-                "type" => Order::TYPE_REQUESTING_MONEY,
-                "status" => Order::STATUS_PENDING,
+                "type" => Payment::TYPE_REQUESTING,
+                "status" => Payment::STATUS_PENDING,
                 "charge" => $charge,
                 "amount" => $amount,
                 "started_at" => $now->toDateTimeString(),
                 "completed_at" => null,
                 "updated_at" => null,
             ];
-            $requestedOrder = [ // create a new order for  account that being requested money
+            $requestedPayment = [ // create a new payment for  account that being requested payment
                 "id" => strtoupper(StrHelper::random(14))  . $now->timestamp,
                 "user_id" => $beingRequestedWalletData->user_id,
                 "from_wallet" => $requesterWalletData->id,
                 "to_wallet" => $beingRequestedWalletData->id,
                 "transaction_id" => $transactionID,
                 "note" => $note,
-                "type" => Order::TYPE_REQUESTED_MONEY,
-                "status" => Order::STATUS_PENDING,
+                "type" => Payment::TYPE_REQUESTED,
+                "status" => Payment::STATUS_PENDING,
                 "amount" => $amount,
                 "charge" => $charge,
                 "started_at" => $now->toDateTimeString(),
@@ -88,36 +89,39 @@ class RequestMoneyAction extends TransactionActionAbstract
                 "updated_at" => null,
             ];
 
-            Order::insert([$requestingOrder, $requestedOrder]);
+            Payment::insert([$requestingPayment, $requestedPayment]);
             // end
 
             DB::commit();
 
             Notification::send(
-                User::query()->where("id", $requestingOrder['user_id'])->first(),
-                new MakeRequestingMoneyNotification(new Order($requestingOrder))
+                User::query()->where("id", $requestingPayment['user_id'])->first(),
+                new MakeRequestingPaymentNotification(new Payment($requestingPayment))
             );
             Notification::send(
-                User::query()->where("id", $requestedOrder['user_id'])->first()  /**/,
-                new NewRequestedMoneyNotification(new Order($requestedOrder))
+                User::query()->where("id", $requestedPayment['user_id'])->first()  /**/,
+                new NewRequestedPaymentNotification(new Payment($requestedPayment))
             );
 
-            return $requestingOrder;
+            // broadcast to account that being requested a payment 
+            broadcast(new PaymentSavedEvent(new Payment($requestedPayment)))->toOthers();
+
+            return $requestingPayment;
         } catch (\Exception | \Throwable $e) {
             DB::rollBack();
             return $e;
         }
     }
 
-    public static function approve(Order  $order, float $charge = 0)
+    public static function approve(Payment  $payment, float $charge = 0)
     {
         try {
             DB::beginTransaction();
-            $amount = ($order->amount);
-            $charge = $order->charge ?? $charge;
+            $amount = ($payment->amount);
+            $charge = $payment->charge ?? $charge;
             $amountAndCharge = ($amount) + ($charge);
-            $beingRequestedWallet = $order->toWallet->address;
-            $requesterWallet = $order->fromWallet->address;
+            $beingRequestedWallet = $payment->toWallet->address;
+            $requesterWallet = $payment->fromWallet->address;
 
             $requesterWalletData = Wallet::where("address", $requesterWallet)->first();
 
@@ -143,102 +147,105 @@ class RequestMoneyAction extends TransactionActionAbstract
             } else throw new TransactionException("Wallet balance is not enough!");
             // end 
 
-            // create -> order & transaction completed_at from "Carbon::now()" 
+            // create -> payment & transaction completed_at from "Carbon::now()" 
             $completedAt = now()->toDateTimeString();
-            // update the order model object 
-            $order->status = Order::STATUS_COMPLETED;
-            $order->completed_at = $completedAt;
-            // update the order databases and get 
-            $approvedOrder = tap(
-                Order::where(fn ($q) => $q
-                    ->where('transaction_id', $order->transaction_id)  /**/),
-                function ($orderQuery)  use ($completedAt, $order) {
-                    // update 2 related order 
-                    $orderQuery->update([
-                        "status" => Order::STATUS_COMPLETED,
+            // update the payment model object 
+            $payment->status = Payment::STATUS_COMPLETED;
+            $payment->completed_at = $completedAt;
+            // update the payment databases and get 
+            $approvedPayment = tap(
+                Payment::where(fn ($q) => $q
+                    ->where('transaction_id', $payment->transaction_id)  /**/),
+                function ($paymentQuery)  use ($completedAt, $payment) {
+                    // update 2 related payment 
+                    $paymentQuery->update([
+                        "status" => Payment::STATUS_COMPLETED,
                         "completed_at" => $completedAt
                     ]);
-                    // get where clause user_id not equal to order->user_id
-                    return $orderQuery->where("user_id", "!=", $order->user_id);
+                    // get where clause user_id not equal to payment->user_id
+                    return $paymentQuery->where("user_id", "!=", $payment->user_id);
                 }
             );
             // end
 
             // update the transaction status 
-            Transaction::where(fn ($q) => $q->where("id", $order->transaction_id))
+            Transaction::where(fn ($q) => $q->where("id", $payment->transaction_id))
                 ->update([
                     "status" => Transaction::STATUS_COMPLETED,
                 ]);
             // end
 
-            $approvedOrder = $approvedOrder->first();
+            $approvedPayment = $approvedPayment->first();
 
             ContactRepository::incrementAndUpdate_LastTransactionAndTotalTransaction_whereOwnerIdOrSavedId(
-                [$order["user_id"] ?? $order->user_id, $approvedOrder->user_id ?? $approvedOrder['user_id']/**/],
+                [$payment["user_id"] ?? $payment->user_id, $approvedPayment->user_id ?? $approvedPayment['user_id']/**/],
             );
             DB::commit();
 
             Notification::send(
-                User::query()->where("id", $order->user_id)->first()  /**/,
-                new ApprovingRequestMoneyNotification($order)
+                User::query()->where("id", $payment->user_id)->first()  /**/,
+                new ApprovingRequestPaymentNotification($payment)
             );
             Notification::send(
-                User::query()->where("id", $approvedOrder->user_id)->first(),
-                new ApprovedRequestMoneyNotification($approvedOrder)
+                User::query()->where("id", $approvedPayment->user_id)->first(),
+                new ApprovedRequestPaymentNotification($approvedPayment)
             );
 
             broadcast(new WalletUpdatedEvent($requesterWalletData))->toOthers();
-            broadcast(new PaymentStatusCompletedEvent(new Order($approvedOrder)))->toOthers();
+            broadcast(new PaymentStatusCompletedEvent($approvedPayment))->toOthers();
+            broadcast(new PaymentSavedEvent($approvedPayment))->toOthers();
 
-            return $order; // return the updated order object 
+            return $payment; // return the updated payment object 
         } catch (\Exception | \Throwable $e) {
             DB::rollBack();
             return $e;
         }
     }
 
-    public static function reject(Order  $order)
+    public static function reject(Payment  $payment)
     {
         try {
             DB::beginTransaction();
 
-            // update the order model object 
-            $order->status = Order::STATUS_REJECTED;
-            // update the order databases 
-            $rejectedOrder = tap(
-                Order::where(fn ($q) => $q
-                    ->where('transaction_id', $order->transaction_id)  /**/),
-                function ($userQuery) use ($order) {
-                    // update 2 related order 
+            // update the payment model object 
+            $payment->status = Payment::STATUS_REJECTED;
+            // update the payment databases 
+            $rejectedPayment = tap(
+                Payment::where(fn ($q) => $q
+                    ->where('transaction_id', $payment->transaction_id)  /**/),
+                function ($userQuery) use ($payment) {
+                    // update 2 related payment 
                     $userQuery->update([
-                        "status" => Order::STATUS_REJECTED,
+                        "status" => Payment::STATUS_REJECTED,
                     ]);
-                    // get where clause user_id not equal to order->user_id
-                    return ($userQuery->where("user_id", "!=", $order->user_id));
+                    // get where clause user_id not equal to payment->user_id
+                    return ($userQuery->where("user_id", "!=", $payment->user_id));
                 }
             );
             // end 
 
             // update the transaction status 
-            Transaction::where(fn ($q) => $q->where("id", $order->transaction_id))
+            Transaction::where(fn ($q) => $q->where("id", $payment->transaction_id))
                 ->update([
                     "status" => Transaction::STATUS_REJECTED,
                 ]);
             // end
 
-            $rejectedOrder = $rejectedOrder->first();
+            $rejectedPayment = $rejectedPayment->first();
             DB::commit();
 
             Notification::send(
-                User::query()->where("id", $order->user_id)->first(),
-                new RejectingRequestMoneyNotification($order)
+                User::query()->where("id", $payment->user_id)->first(),
+                new RejectingRequestPaymentNotification($payment)
             );
             Notification::send(
-                User::query()->where("id", $rejectedOrder->user_id)->first()  /**/,
-                new RejectedRequestMoneyNotification($rejectedOrder)
+                User::query()->where("id", $rejectedPayment->user_id)->first()  /**/,
+                new RejectedRequestPaymentNotification($rejectedPayment)
             );
 
-            return $order; // return the updated order object 
+            broadcast(new PaymentSavedEvent($rejectedPayment))->toOthers();
+
+            return $payment; // return the updated payment object 
         } catch (\Exception | \Throwable $e) {
             DB::rollBack();
             return $e;

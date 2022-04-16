@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Contact;
-use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -37,8 +37,8 @@ class AuthServiceProvider extends ServiceProvider
             $user->id === $transaction->from_wallet || $user->id === $transaction->to_wallet
         );
 
-        // check user has the order or not 
-        Gate::define("has-order", fn (User $user, Order $order) => $user->id === $order->user_id);
+        // check user has the payment or not 
+        Gate::define("has-payment", fn (User $user, Payment $payment) => $user->id === $payment->user_id);
 
         // check if user has the notification  
         Gate::define("has-notification", fn (User $user, $notification) => $user->id === $notification->notifiable_id);

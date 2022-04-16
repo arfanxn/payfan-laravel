@@ -6,7 +6,7 @@ use App\Helpers\URLHelper;
 use Faker\Factory as WithFaker;
 use App\Models\Notification;
 use App\Models\User;
-use App\Notifications\SendMoneyNotification;
+use App\Notifications\SendPaymentNotification;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class NotificationFactory extends Factory
@@ -27,7 +27,7 @@ class NotificationFactory extends Factory
 
         return array_merge([
             "id" => $faker_ID->uuid(),
-            "type" => \App\Notifications\SendMoneyNotification::class,
+            "type" => \App\Notifications\SendPaymentNotification::class,
             "notifiable_type" => \App\Models\User::class,
             "notifiable_id" => 2,
             "data" => json_encode([
