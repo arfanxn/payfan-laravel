@@ -39,7 +39,7 @@ class TransactionSeeder extends Seeder
                 "status" => in_array(Payment::TYPE_REQUESTING, $paymentTypes) ? $paymentStatus[rand(0, 3)] : $paymentStatus[rand(0, 2)],
                 "amount" => $transaction->amount,
                 "charge" => $transaction->charge,
-                "started_at" => $randomDateTime->toDateTimeString(),
+                "created_at" => $randomDateTime->toDateTimeString(),
                 "completed_at" => $randomDateTime->addDays(rand(1, 2))->toDateTimeString(),
                 "updated_at" => null,
             ];
@@ -68,11 +68,15 @@ class TransactionSeeder extends Seeder
                 "status" => Payment::STATUS_COMPLETED,
                 "amount" => $transaction->amount,
                 "charge" => $transaction->charge,
-                "started_at" => $randomDateTime->toDateTimeString(),
+                "created_at" => $randomDateTime->toDateTimeString(),
                 "completed_at" => $randomDateTime->addDay()->toDateTimeString(),
                 "updated_at" => null,
             ];
             Payment::create($paymentTypeGift);
         });
+
+        Payment::where("status", Payment::STATUS_PENDING)->update([
+            "completed_at" => null,
+        ]);
     }
 }

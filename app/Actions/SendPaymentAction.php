@@ -97,7 +97,7 @@ class SendPaymentAction extends TransactionActionAbstract
                 "status" => Payment::STATUS_COMPLETED,
                 "amount" => $amount,
                 "charge" => $charge,
-                "started_at" => $now->toDateTimeString(),
+                "created_at" => $now->toDateTimeString(),
                 "completed_at" => $now->toDateTimeString(),
                 "updated_at" => null,
             ];
@@ -112,7 +112,7 @@ class SendPaymentAction extends TransactionActionAbstract
                 "status" => Payment::STATUS_COMPLETED,
                 "amount" => $amount,
                 "charge" => 0,
-                "started_at" => $now->toDateTimeString(),
+                "created_at" => $now->toDateTimeString(),
                 "completed_at" => $now->toDateTimeString(),
                 "updated_at" => null,
             ];

@@ -75,7 +75,7 @@ class ContactController extends Controller
             ->where(
                 fn ($query) => $query->where("from_wallet", $contact->user->wallet->id)
                     ->orWhere("to_wallet", $contact->user->wallet->id)
-            )->orderBy("started_at", 'desc')->first();
+            )->orderBy("created_at", 'desc')->first();
 
         return response()->json(["last_transaction" => $lastTransaction]);
     }

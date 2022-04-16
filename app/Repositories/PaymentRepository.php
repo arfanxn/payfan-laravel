@@ -24,10 +24,10 @@ class PaymentRepository
             );
         }
         if ($start_at) {
-            $paymentQuery = $paymentQuery->where("started_at", ">=", $start_at);
+            $paymentQuery = $paymentQuery->where("created_at", ">=", $start_at);
         }
         if ($end_at) {
-            $paymentQuery = $paymentQuery->where("started_at", "<=", $end_at);
+            $paymentQuery = $paymentQuery->where("created_at", "<=", $end_at);
         }
 
         if ($status) {

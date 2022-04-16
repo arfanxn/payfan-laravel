@@ -28,9 +28,8 @@ class CreatePaymentsTable extends Migration
             $table->string("status", 100);
             $table->unsignedDecimal("amount", 11, 2);
             $table->unsignedDecimal("charge", 7, 2)->nullable()->default(0);
-            $table->timestamp("started_at")->default(now()->toDateTimeString());
+            $table->timestamps();
             $table->timestamp("completed_at")->nullable();
-            $table->timestamp("updated_at")->nullable();
         });
     }
 

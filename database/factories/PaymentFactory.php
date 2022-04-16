@@ -21,7 +21,7 @@ class PaymentFactory extends Factory
             "note" => $this->withFaker()->sentences(1, 2, true),
             "status" => Payment::STATUS_COMPLETED,
             "amount" => rand(1, 999999) . "." . rand(1, 99),
-            "started_at" => $now->toDateTimeString(),
+            "created_at" => $now->toDateTimeString(),
             "completed_at" => $now->toDateTimeString(),
             "updated_at" => null,
 

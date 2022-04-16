@@ -69,7 +69,7 @@ class MakeRequestingPaymentNotification extends Notification implements ShouldBr
             ->line('Amount : ' . StrHelper::make((string) $this->payment->amount)->toUSD(true)->get())
             ->line('Charge : ' . StrHelper::make((string) $this->payment->charge)->toUSD(true)->get())
             ->line('Total : ' . $total)
-            ->line('Requested at : ' . Carbon::parse($this->payment->started_at
+            ->line('Requested at : ' . Carbon::parse($this->payment->created_at
                 ?? $this->payment->created_at)->toDateTimeString() . " UTC")
             ->line('Payment ID : ' . $this->payment->id)
             ->line('Transaction ID : ' . $this->payment->transaction_id)

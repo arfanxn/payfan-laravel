@@ -23,7 +23,7 @@ class TransactionResource extends JsonResource
             "note" => $this->note,
             "amount" => $this->amount,
             "charge" => $this->charge,
-            "started_at" => $this->started_at,
+            "created_at" => $this->created_at,
             "completed_at" => $this->completed_at,
         ];
     }

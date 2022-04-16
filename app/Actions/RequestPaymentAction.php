@@ -69,7 +69,7 @@ class RequestPaymentAction extends TransactionActionAbstract
                 "status" => Payment::STATUS_PENDING,
                 "charge" => $charge,
                 "amount" => $amount,
-                "started_at" => $now->toDateTimeString(),
+                "created_at" => $now->toDateTimeString(),
                 "completed_at" => null,
                 "updated_at" => null,
             ];
@@ -84,7 +84,7 @@ class RequestPaymentAction extends TransactionActionAbstract
                 "status" => Payment::STATUS_PENDING,
                 "amount" => $amount,
                 "charge" => $charge,
-                "started_at" => $now->toDateTimeString(),
+                "created_at" => $now->toDateTimeString(),
                 "completed_at" => null,
                 "updated_at" => null,
             ];

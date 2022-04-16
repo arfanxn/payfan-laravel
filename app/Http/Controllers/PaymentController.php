@@ -51,11 +51,11 @@ class PaymentController extends Controller
             "status" => $validatorValidated['status'] ?? null,
             "type" => $validatorValidated['type'] ?? null,
         ], $paymentQuery)
-            ->orderBy("started_at", "desc")
+            ->orderBy("updated_at", "desc")
             ->get();
 
         $paymentsGrouped  = $payments->groupBy(
-            fn (\App\Models\Payment $payment) => \Carbon\Carbon::parse($payment->started_at)->format('Y-m'),
+            fn (\App\Models\Payment $payment) => \Carbon\Carbon::parse($payment->created_at)->format('Y-m'),
         );
 
         $paymentsPaginator = (new \Illuminate\Pagination\Paginator(

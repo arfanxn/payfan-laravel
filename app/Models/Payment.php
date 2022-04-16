@@ -10,9 +10,6 @@ class Payment extends Model
 {
     use HasFactory;
 
-    // this tables has not having column below 
-    public const CREATED_AT = null, UPDATED_AT = null;
-
     protected $fillable = [
         "id",
         "user_id",
@@ -24,32 +21,26 @@ class Payment extends Model
         "status",
         "amount",
         "charge",
-        "started_at",
         "completed_at",
+        "created_at",
         "updated_at",
     ];
 
+    public $timestamps = true;
     public $incrementing = false;
 
     protected $casts = [
         'id' => 'string',
-        'started_at' => "datetime",
         "completed_at" => "datetime",
+        'created_at' => "datetime",
         "updated_at" => "datetime",
     ];
-    // protected $dates = [
-    //     'started_at',
-    //     "completed_at",
-    //     "updated_at",
-    // ];
 
     public const
         STATUS_COMPLETED = "COMPLETED",
         STATUS_PENDING =  "PENDING",
         STATUS_REJECTED = "REJECTED",
         STATUS_FAILED = "FAILED";
-    /*  STATUS_WAIITING_FOR_APPROVAL = "WAIITING_FOR_APPROVAL",  */
-
 
     public const
         TYPE_SENDING  = 'SENDING PAYMENT',
