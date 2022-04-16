@@ -2,6 +2,7 @@
 
 namespace App\Notifications\Transactions;
 
+use App\Helpers\StrHelper;
 use App\Helpers\URLHelper;
 use App\Models\Payment;
 use App\Traits\Notifications\HasToBroadcastNotificationTrait;
@@ -58,17 +59,21 @@ class SendPaymentNotification extends Notification implements ShouldBroadcast,  
     public function toMail($notifiable)
     {
         $total = floatval($this->payment->amount) + floatval($this->payment->charge);
-        $total = Str::contains($total, ".") ? $total . " $" : $total . ".00 $";
+        $total = StrHelper::make((string) $total)->toUSD(true)->get();
 
         return (new MailMessage)
             ->subject('Send payment to "'
                 . substr($this->payment->toWallet->user->name, 0, 10)  . '" successfully | ' . config('app.name'))
             ->greeting("Hello, $notifiable->name .")
-            ->line('Your transaction to "' . $this->payment->toWallet->user->name . '" successfully.')
+            ->line($this->toArray($notifiable)['body'])
             ->line('Sender name : ' . $this->payment->fromWallet->user->name)
             ->line('Receiver name : ' . $this->payment->toWallet->user->name)
-            ->line('Amount : ' . $this->payment->amount . " $")
-            ->line('Charge : ' . $this->payment->charge . " $")
+            ->line('Amount : ' . StrHelper::make(
+                (string) $this->payment->amount
+            )->toUSD(true)->get())
+            ->line('Charge : ' . StrHelper::make(
+                (string) $this->payment->charge
+            )->toUSD(true)->get())
             ->line('Total : ' . $total)
             ->line('Completed at : ' . Carbon::parse($this->payment->completed_at)->toDateTimeString() . " UTC")
             ->line('Payment ID : ' . $this->payment->id)
@@ -88,8 +93,10 @@ class SendPaymentNotification extends Notification implements ShouldBroadcast,  
         return [
             "header" => "Send payment successfully",
             "body" =>
-            'Send payment to "' . substr($this->payment->toWallet->user->name, 0, 15)
-                . '", amount ' . $this->payment->amount . " $.",
+            'Your send payment to "' . $this->payment->toWallet->user->name
+                . '", amount ' . StrHelper::make(
+                    (string) $this->payment->amount
+                )->toUSD(true)->get() . " successfully sent",
             "action" => [
                 "text" => "View Invoice",
                 "url" => URLHelper::frontendWeb("activity?keyword=" . $this->payment->id),

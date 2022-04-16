@@ -2,6 +2,7 @@
 
 namespace App\Notifications\Transactions;
 
+use App\Helpers\StrHelper;
 use App\Helpers\URLHelper;
 use App\Models\Payment;
 use App\Traits\Notifications\HasToBroadcastNotificationTrait;
@@ -56,18 +57,17 @@ class ApprovingRequestPaymentNotification extends Notification implements Should
     public function toMail($notifiable)
     {
         $total = floatval($this->payment->amount) + floatval($this->payment->charge);
-        $total = Str::contains($total, ".") ? $total . " $" : $total . ".00 $";
+        $total = StrHelper::make((string) $total)->toUSD(true)->get();
 
         return (new MailMessage)
             ->subject('Approving request payment from "'
                 . substr($this->payment->fromWallet->user->name, 0, 10)  . '" | ' . config('app.name'))
             ->greeting("Hello, $notifiable->name .")
-            ->line('You approving a request payment from "' . $this->payment->fromWallet->user->name . '", 
-                amount ' . $this->payment->amount . " $")
+            ->line($this->toArray($notifiable)['body'])
             ->line('Requester name : ' . $this->payment->fromWallet->user->name)
             ->line('Requested name : ' . $this->payment->toWallet->user->name)
-            ->line('Amount : ' . $this->payment->amount . " $")
-            ->line('Charge : ' . $this->payment->charge . " $")
+            ->line('Amount : ' . StrHelper::make((string) $this->payment->amount)->toUSD(true)->get())
+            ->line('Charge : ' . StrHelper::make((string) $this->payment->charge)->toUSD(true)->get())
             ->line('Total : ' . $total)
             ->line('Approved at : ' . Carbon::parse($this->payment->completed_at)->toDateTimeString() . " UTC")
             ->line('Payment ID : ' . $this->payment->id)
@@ -89,7 +89,7 @@ class ApprovingRequestPaymentNotification extends Notification implements Should
             "header" => "Approving request payment",
             "body" =>
             'You approving a request payment from "' . $this->payment->fromWallet->user->name . '", 
-                amount ' . $this->payment->amount . " $",
+                amount ' . StrHelper::make((string) $this->payment->amount)->toUSD(true)->get(),
             "action" => [
                 "text" => "View Approved Request",
                 "url" => URLHelper::frontendWeb("/activity?keyword=" . $this->payment->id),

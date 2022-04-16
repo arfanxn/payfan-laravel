@@ -2,6 +2,7 @@
 
 namespace App\Notifications\Transactions;
 
+use App\Helpers\StrHelper;
 use App\Helpers\URLHelper;
 use App\Models\Payment;
 use App\Traits\Notifications\HasToBroadcastNotificationTrait;
@@ -56,18 +57,17 @@ class NewRequestedPaymentNotification extends Notification implements ShouldBroa
     public function toMail($notifiable)
     {
         $total = floatval($this->payment->amount) + floatval($this->payment->charge);
-        $total = Str::contains($total, ".") ? $total . " $" : $total . ".00 $";
+        $total = StrHelper::make((string) $total)->toUSD(true)->get();
 
         return (new MailMessage)
             ->subject('Pending requested payment from "'
                 . substr($this->payment->fromWallet->user->name, 0, 10)  . '" | ' . config('app.name'))
             ->greeting("Hello, $notifiable->name .")
-            ->line('You have a pending requested payment from "' . $this->payment->fromWallet->user->name . '", 
-                amount ' . $this->payment->amount . " $")
+            ->line($this->toArray($notifiable)['body'])
             ->line('Requester name : ' . $this->payment->fromWallet->user->name)
             ->line('Requested name : ' . $this->payment->toWallet->user->name)
-            ->line('Amount : ' . $this->payment->amount . " $")
-            ->line('Charge : ' . $this->payment->charge . " $")
+            ->line('Amount : ' . StrHelper::make((string) $this->payment->amount)->toUSD(true)->get())
+            ->line('Charge : ' . StrHelper::make((string) $this->payment->charge)->toUSD(true)->get())
             ->line('Total : ' . $total)
             ->line('Requested at : ' . Carbon::parse($this->payment->started_at
                 ?? $this->payment->created_at)->toDateTimeString() . " UTC")
@@ -89,7 +89,7 @@ class NewRequestedPaymentNotification extends Notification implements ShouldBroa
             "header" => "Pending requested payment",
             "body" =>
             'You have a pending requested payment from "' . $this->payment->fromWallet->user->name . '", 
-                amount ' . $this->payment->amount . " $",
+                amount ' . StrHelper::make((string) $this->payment->amount)->toUSD(true)->get(),
             "action" => [
                 "text" => "View Pending Request",
                 "url" => URLHelper::frontendWeb("/activity?keyword=" . $this->payment->id),
