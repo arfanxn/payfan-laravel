@@ -61,7 +61,7 @@ Route::prefix("users")->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name("login");
 
     Route::prefix("verification-code")->group(function () {
-        Route::post("/create", [AuthController::class, "createVerificationCode"]) // ;
+        Route::post("/create", [AuthController::class, "createVerificationCode"])
             ->middleware(["throttle:one_perminute"]);
         Route::post("/verify", [AuthController::class, "verifyVerificationCode"]);
     });

@@ -163,14 +163,14 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->only(["email", "reason"]), [
             "email" =>  [Rule::requiredIf(!Cookie::has("jwt"))],
-            "reason" => "nullable|string|max:100",
+            "reason" => "nullable|string|max:100", 
             "notifiable_name" => "nullable|string|max:50"
         ]);
         if ($validator->fails()) return response($validator->errors()->messages(), 422);
-
-        $email = $validator->validated()['email'] ?? null;
-        $verificationReason = $validator->validated()['reason'] ?? null;
-        $verificationNotifiableName = $validator->validated()['notifiable_name'] ?? null;
+            
+        $email = $request->get("email");
+        $verificationReason = $request->get("reason");
+        $verificationNotifiableName = $request->get("notifiable_name");
 
         if (Cookie::has("jwt") && !$email) { // if the user has jwt (logged in) && "email" is null/falsy
             $jwtPayl = JWTService::getPayload();

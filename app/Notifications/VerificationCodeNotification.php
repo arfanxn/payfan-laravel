@@ -25,8 +25,8 @@ class VerificationCodeNotification extends Notification implements ShouldQueue
         array $verification = ["reason" => null, "notifiable_name" => null,]
     ) {
         $this->code  = $code;
-        $this->reason  = $verification['reason'];
-        $this->notifiable_name  = $verification['notifiable_name'];
+        $this->reason  = $verification['reason'] ?? null;
+        $this->notifiable_name  = $verification['notifiable_name'] ?? null;
     }
 
     /**
@@ -48,14 +48,27 @@ class VerificationCodeNotification extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $notifiableName = $notifiable->name ?? $this->notifiable_name ?? null;
+        $notifiableName = isset($notifiable->name) &&
+            is_string($notifiable->name) && strlen($notifiable->name)
+            ? $notifiable->name
+            : (isset($this->notifiable_name)
+                && is_string($this->notifiable_name)
+                ? $this->notifiable_name : null);
+
+        $greeting = "";
+        if ($notifiableName)
+            $greeting = "Hello, $notifiableName .";
+        else $greeting = "Hello.";
+
+        $body = "";
+        if ($this->reason)
+            $body = "Your verification code / otp for verifying " . PHP_EOL . "$this->reason is";
+        else $body = "Your verification code / otp is";
 
         return (new MailMessage)
             ->subject("Verification Code / OTP | " . config("app.name"))
-            ->greeting($notifiableName ? "Hello, $notifiableName ." : "Hello.")
-            ->line("Your verification code / otp for verifying" .
-                $this->reason ? $this->reason : ""
-                . " is")
+            ->greeting($greeting)
+            ->line($body)
             ->line('Verification Code : ' . $this->code)
             ->line('Expire at : ' . now()->addMinutes(30)->format("M d D - H:i") . " UTC")
             ->line("Don't let anyone know your verification code.");
