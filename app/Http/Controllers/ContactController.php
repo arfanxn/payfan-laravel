@@ -25,6 +25,7 @@ class ContactController extends Controller
                 'total_transaction:asc', 'total_transaction:desc',
                 "last_transaction:asc",  "last_transaction:desc",
                 "added_at:asc",  "added_at:desc",
+                "updated_at:asc",  "updated_at:desc",
             ])],
             "favorited" => "nullable",
             "blocked" => "nullable",
@@ -75,7 +76,7 @@ class ContactController extends Controller
             ->where(
                 fn ($query) => $query->where("from_wallet", $contact->user->wallet->id)
                     ->orWhere("to_wallet", $contact->user->wallet->id)
-            )->orderBy("created_at", 'desc')->first();
+            )->orderBy("updated_at", 'desc')->first();
 
         return response()->json(["last_transaction" => $lastTransaction]);
     }
@@ -86,25 +87,23 @@ class ContactController extends Controller
             if (Gate::denies("has-contact", $contact)) return response("Forbidden", 403);
 
             $message = '';
-            $statusText = '';
             switch ($contact->status) {
                 case Contact::STATUS_FAVORITED:
                     $contact->status = Contact::STATUS_ADDED;
-                    $message = "UNFAVORITED";
-                    $statusText = 'Contact removed from favorite';
+                    $message = 'Contact removed from favorite';
                     break;
                 case Contact::STATUS_BLOCKED:
                     throw new ContactBlockedException();
                     break;
                 default:
                     $contact->status = Contact::STATUS_FAVORITED;
-                    $message = Contact::STATUS_FAVORITED;
-                    $statusText = 'Contact added to favorite';
+                    $message = 'Contact added to favorite';
                     break;
             }
+            $contact->updated_at = now()->toDateTimeString();
             $contact->save();
 
-            return response()->json(["message" => $message])->setStatusCode(200, $statusText);
+            return response()->json(["message" => $message]);
         } catch (ContactBlockedException $e) {
             return $e;
         }
@@ -115,24 +114,22 @@ class ContactController extends Controller
         $contactQuery = Contact::query()->where("owner_id", Auth::id())->where("saved_id", $user->id);
         $isAlreadyAdded = $contactQuery->exists();
 
-        $statusText = "";
         $message = '';
         if ($isAlreadyAdded) {
             $contactQuery->delete();
-            $message = "Removed";
-            $statusText = "User deleted from contact.";
+            $message =  "\"$user->name\" deleted from contacts.";
         } else {
             Contact::query()->create([
                 "owner_id" => Auth::id(),
                 "saved_id" => $user->id,
                 "status" => Contact::STATUS_ADDED,
                 "added_at" => now()->toDateTimeString(),
+                "updated_at" => now()->toDateTimeString(),
             ]);
-            $message = "Added";
-            $statusText = "User added to contact.";
+            $message = "\"$user->name\" added to contacts.";
         }
 
-        return response()->json(["message" => $message])->setStatusCode(200, $statusText);
+        return response()->json(["message" => $message]);
     }
 
     public function block(Contact $contact)
@@ -141,7 +138,7 @@ class ContactController extends Controller
 
         $contact->status = Contact::STATUS_BLOCKED;
         return $contact->save() ?
-            response()->json(['message' => "Contact blocked successfully."])->setStatusCode(200, "Contact blocked successfully.")
+            response()->json(['message' => "Contact blocked successfully."])
             : ErrorsResponse::server();
     }
 
@@ -149,9 +146,11 @@ class ContactController extends Controller
     {
         if (Gate::denies("has-contact", $contact)) return response("Forbidden", 403);
 
-        $isDeleted = $contact->delete();
-        return $isDeleted ?
-            response()->json(['message' => "Contact unblocked successfully."])->setStatusCode(200, "Contact unblocked successfully.")
+        $contact->status = Contact::STATUS_ADDED;
+        $contact->updated_at = now()->toDateTimeString();
+        $isSaved = $contact->save();
+        return $isSaved ?
+            response()->json(['message' => "Contact unblocked successfully."])
             : ErrorsResponse::server();
     }
 }
