@@ -38,7 +38,7 @@ class VerificationCodeOrSequrityQuestionMiddleware
 
             if user is already logged in and "email" is provided then use the provided "email" instead of from (Auth::user()->email)
             */
-        $email = $validator->validated()["email"] ?? Auth::user()->email ?? null;
+        $email = $validator->validated()["email"] ?? Auth::user()->email;
         // end 
 
         $code = $validator->validated()["code"] ?? null;
@@ -63,10 +63,15 @@ class VerificationCodeOrSequrityQuestionMiddleware
             return VerificationCodeResponse::fail()
                 ->setStatusCode(277, $middlewareFailStatusText);
         } else if ($securityAnswer) {
-            $user = User::with("settings")->where("email", $email)->first();
+            $user = User::with("settings")->where("email", $email)->first()->load("settings");
             if (/**/(strtolower($user->settings->security_answer) == strtolower($securityAnswer)) /**/) {
                 $response = $next($request);
                 return $response;
+            } else if ($user->settings->security_answer == null || $user->settings->security_question == null) {
+                return response()->json([
+                    "security_answer_error_message" =>
+                    "Your account security question is not configured yet, please try to configure it on the account settings page"
+                ]);
             }
 
             return response()->json([
