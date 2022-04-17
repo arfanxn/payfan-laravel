@@ -55,7 +55,8 @@ class PaymentController extends Controller
             ->get();
 
         $paymentsGrouped  = $payments->groupBy(
-            fn (\App\Models\Payment $payment) => \Carbon\Carbon::parse($payment->created_at)->format('Y-m'),
+            fn (\App\Models\Payment $payment) =>
+            \Carbon\Carbon::parse($payment->updated_at)->format('Y-m'),
         );
 
         $paymentsPaginator = (new \Illuminate\Pagination\Paginator(
