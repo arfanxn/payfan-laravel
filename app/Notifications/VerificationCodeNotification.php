@@ -13,17 +13,20 @@ class VerificationCodeNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    private $verificationCode, $verificationReason;
+    private $code, $reason, $notifiable_name;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct(int $verificationCode, string $verificationReason = "")
-    {
-        $this->verificationCode  = $verificationCode;
-        $this->verificationReason  = $verificationReason;
+    public function __construct(
+        string $code,
+        array $verification = ["reason" => null, "notifiable_name" => null,]
+    ) {
+        $this->code  = $code;
+        $this->reason  = $verification['reason'];
+        $this->notifiable_name  = $verification['notifiable_name'];
     }
 
     /**
@@ -45,11 +48,15 @@ class VerificationCodeNotification extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
+        $notifiableName = $notifiable->name ?? $this->notifiable_name ?? null;
+
         return (new MailMessage)
-            ->subject("Verification Code | " . config("app.name"))
-            ->greeting(isset($notifiable->name) ? "Hello, $notifiable->name ." : "Hello.")
-            ->line("Your verification code for verifying " . $this->verificationReason . " is.")
-            ->line('Verification Code : ' . $this->verificationCode)
+            ->subject("Verification Code / OTP | " . config("app.name"))
+            ->greeting($notifiableName ? "Hello, $notifiableName ." : "Hello.")
+            ->line("Your verification code / otp for verifying" .
+                $this->reason ? $this->reason : ""
+                . " is")
+            ->line('Verification Code : ' . $this->code)
             ->line('Expire at : ' . now()->addMinutes(30)->format("M d D - H:i") . " UTC")
             ->line("Don't let anyone know your verification code.");
     }

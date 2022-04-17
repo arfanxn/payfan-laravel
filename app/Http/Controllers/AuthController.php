@@ -163,12 +163,14 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->only(["email", "reason"]), [
             "email" =>  [Rule::requiredIf(!Cookie::has("jwt"))],
-            "reason" => "nullable|string|max:25"
+            "reason" => "nullable|string|max:100",
+            "notifiable_name" => "nullable|string|max:50"
         ]);
         if ($validator->fails()) return response($validator->errors()->messages(), 422);
 
         $email = $validator->validated()['email'] ?? null;
-        $verificationReason = $validator->validated()['reason'] ?? "";
+        $verificationReason = $validator->validated()['reason'] ?? null;
+        $verificationNotifiableName = $validator->validated()['notifiable_name'] ?? null;
 
         if (Cookie::has("jwt") && !$email) { // if the user has jwt (logged in) && "email" is null/falsy
             $jwtPayl = JWTService::getPayload();
@@ -178,10 +180,12 @@ class AuthController extends Controller
             $verificationCode = VerificationCodeService::generate(6);
             $hashedCode = VerificationCodeService::createHash($email, $verificationCode, 30);
 
-            Notification::send($user, new VerificationCodeNotification($verificationCode, $verificationReason));
+            Notification::send($user, new VerificationCodeNotification($verificationCode, [
+                "reason" => $verificationReason
+            ]));
 
             return response()->json()->withCookie(cookie("hashed_code", $hashedCode, 30));
-        } else if ($email) {
+        } else if ($email) { // if email is provided , whatever either user is logged in or not
             $user = User::where("email", $email /**/)->first();
 
             $verificationCode = VerificationCodeService::generate(6);
@@ -190,10 +194,14 @@ class AuthController extends Controller
             $user ? // if "user" found send the verification code notification with "user" data/object 
                 Notification::send(
                     $user,
-                    new VerificationCodeNotification($verificationCode, $verificationReason)
+                    new VerificationCodeNotification($verificationCode, [
+                        'reason' => $verificationReason, "notifiable_name" => $verificationNotifiableName
+                    ])
                 ) : // if "user" not found send the verification code notification anonymously
                 Notification::route("mail", $email/**/)->notify(
-                    new VerificationCodeNotification($verificationCode, $verificationReason)
+                    new VerificationCodeNotification($verificationCode, [
+                        'reason' => $verificationReason, "notifiable_name" => $verificationNotifiableName
+                    ])
                 );
 
             return response()->json()->withCookie(cookie("hashed_code", $hashedCode, 30));

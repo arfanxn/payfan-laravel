@@ -58,7 +58,7 @@ class VerificationCodeService
         }
     }
 
-    public static function generate($length)
+    public static function generate($length): string
     {
         $chars = '0123456789';
         $charLength = strlen($chars);
@@ -66,6 +66,6 @@ class VerificationCodeService
         for ($i = 0; $i < $length; $i++) {
             $verificationCodeString .= $chars[rand(0, $charLength - 1)];
         }
-        return $verificationCodeString;
+        return (string) $verificationCodeString;
     }
 }
