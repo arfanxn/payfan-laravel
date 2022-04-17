@@ -53,6 +53,7 @@ class ContactRepository
 
         return $contactQuery->increment("total_transaction", 1, [
             "last_transaction" => now()->toDateTimeString(),
+            "updated_at" => now()->toDateTimeString(),
         ]);
     }
 }

@@ -50,13 +50,15 @@ class DatabaseSeeder extends Seeder
                     $status = Contact::STATUS_BLOCKED;
                     break;
             }
+            $addedAt = now()->subDays(rand(31, 365))->toDateTimeString();
             \App\Models\Contact::create([
                 "owner_id" => rand(1, 5),
                 "saved_id"  => $i + 1,
                 "status" => $status,
                 "total_transaction" => rand(1, 99),
                 'last_transaction' => now()->subDay(rand(1, 30))->toDateTimeString(),
-                'added_at' => now()->subDays(rand(31, 365))->toDateTimeString()
+                'added_at' => $addedAt,
+                'updated_at' => $addedAt,
             ]);
         }
 

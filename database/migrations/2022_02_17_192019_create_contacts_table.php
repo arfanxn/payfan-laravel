@@ -23,7 +23,8 @@ class CreateContactsTable extends Migration
             $table->string("status")->default(Contact::STATUS_ADDED); // status =  null / favorited / blocked  ; 
             $table->unsignedBigInteger("total_transaction")->default(0);
             $table->timestamp("last_transaction")->nullable();
-            $table->timestamp("added_at")->nullable();
+            $table->timestamp("added_at")->nullable()->default(null);
+            $table->timestamp("updated_at")->nullable()->default(null);
         });
     }
 

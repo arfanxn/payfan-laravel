@@ -9,13 +9,13 @@ class Contact extends Model
 {
     use HasFactory;
 
-    public const UPDATED_AT = null, CREATED_AT = null;
+    public const  CREATED_AT = null;
 
     public const STATUS_ADDED = "ADDED", STATUS_FAVORITED = "FAVORITED",  STATUS_BLOCKED = "BLOCKED";
 
     protected $fillable = [
         "owner_id", "saved_id", "status",
-        "total_transaction", 'last_transaction', 'added_at'
+        "total_transaction", 'last_transaction', 'added_at', "updated_at"
     ];
 
     /**
