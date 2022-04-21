@@ -49,6 +49,7 @@ services:
       - 5672:5672
       - 15672:15672
     volumes:
+      - ./docker/rabbitmq/data/:/var/lib/rabbitmq/mnesia/
       - ./docker/rabbitmq/data:/var/lib/rabbitmq
       - ./docker/rabbitmq/log:/var/log/rabbitmq
     networks:
