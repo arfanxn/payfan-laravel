@@ -24,15 +24,11 @@ class __TestController extends Controller
      */
     public function index(Request $request)
     {
-        return '$' . number_format(666777999.09, 2, ".", ",");
-
-        $numberFormatter = new NumberFormatter("en", NumberFormatter::CURRENCY);
-        $result =  $numberFormatter->formatCurrency(666777999.09, "USD");
-
-        return  Str::replace("$", "", $result);
+        // do your own test 
+        return dd("success");
     }
 
-    public function previewMailNotification(Request $request)
+    public function previewNotification(Request $request)
     {
         $user = \App\Models\User::offset(1)->limit(1)->first();
         $paymentSendMoney = \App\Models\Payment::query()->where(
@@ -41,7 +37,16 @@ class __TestController extends Controller
                 ->where("status", "COMPLETED")
         )->orderBy("started_at", "desc")->first();
 
-        $notification = (new \App\Notifications\VerificationCodeNotification(112233, "Login"))->toMail($user);
+        $notification = (new \App\Notifications\VerificationCodeNotification(112233))->toMail($user);
         return $notification->render();
+    }
+
+    public function rabbitMQ(Request $request)
+    {
+        Notification::route("mail", "arf@gm.com")
+            ->notify(
+                new \App\Notifications\VerificationCodeNotification("002233", ['notifiable_name' => "Muhammad Arfan"])
+            );
+        return dd(now());
     }
 }

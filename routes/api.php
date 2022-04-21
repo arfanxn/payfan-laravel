@@ -134,5 +134,6 @@ Route::prefix("user")->middleware("api")->group(function () {
 
 Route::prefix("test")->group(function () {
     Route::get("", [__TestController::class, "index"]);
-    Route::get("preview/mail-notification/", [__TestController::class, "previewMailNotification"]);
+    Route::get("preview/notification/", [__TestController::class, "previewNotification"]);
+    Route::get("rabbitmq", [__TestController::class, "rabbitMQ"]);
 });
