@@ -3,10 +3,10 @@
 namespace App\Exceptions;
 
 use Exception;
+use Throwable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
-use Throwable;
 
 class Handler extends ExceptionHandler
 {
@@ -29,6 +29,15 @@ class Handler extends ExceptionHandler
         'password',
         'password_confirmation',
     ];
+
+    public function report(Throwable $exception)
+    {
+        parent::report($exception);
+    }
+    public function render($request, Throwable $exception)
+    {
+        return parent::render($request, $exception);
+    }
 
     /**
      * Register the exception handling callbacks for the application.
