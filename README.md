@@ -4,20 +4,30 @@ Payfan is Paypal Clone application build with Laravel 8 framework, Mysql Databas
 
 ## Installation
 
-this application requires RabbitMQ to run, install the RabbitMQ with docker-compose  
+Payfan application require RabbitMQ to store message queues, install the RabbitMQ with docker-compose  
 ```sh
-docker-compose --file=docker-compose-rabbitmq.yaml  up
+docker-compose -f=docker-compose-rabbitmq.yaml up -d 
 ```
 
-Create mysql required tables and seed data to tables
+Install all composer dependencies  
+```sh
+composer install --ignore-platform-reqs
+```
+
+Migrate Payfan required tables and seed data to tables
 ```sh
 php artisan migrate 
 php artisan db:seed
 ```
 
+Generate JWT secret key / hash key 
+```sh
+php artisan key:generate
+```
+
 ## Docker
 
-Deploy to docker container (Dockerizing/Containerizing)
+You can also deploy to docker container (Dockerizing/Containerizing)
 
 By default, the Docker will expose port 8000, so change this within the
 Dockerfile if necessary. When ready, simply use the Dockerfile to
@@ -25,7 +35,8 @@ build the image.
 
 ```sh
 docker-compose build 
-docker-compose --file=docker-compose-deploy.yaml  up
+docker-compose docker-compose-rabbitmq.yaml down
+docker-compose docker-compose-deploy.yaml up -d 
 ```
 
 Verify the deployment by navigating to your server address in
