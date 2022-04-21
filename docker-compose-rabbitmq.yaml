@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'payfan-rabbitmq'
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: payfan
+      RABBITMQ_DEFAULT_PASS: payfan
+    volumes:
+      - './docker/rabbitmq/data/:/var/lib/rabbitmq/mnesia/'
+    networks:
+      - payfan-network
+
+networks:
+  payfan-network:
+    driver: bridge
