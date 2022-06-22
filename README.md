@@ -1,6 +1,6 @@
 # Payfan (Laravel/Backend)
 
-Payfan is Paypal Clone application build with Laravel 8 framework, Mysql Database, and RabbitMQ message broker 
+Payfan is Paypal Clone application built with Laravel 8, Mysql, Pusher, and RabbitMQ 
 
 ## Installation
 
