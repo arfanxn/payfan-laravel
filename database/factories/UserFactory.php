@@ -17,15 +17,13 @@ class UserFactory extends Factory
 
     public function definition()
     {
-        $faker_ID = WithFaker::create("id_ID");
-
         $images =  \Illuminate\Support\Facades\Storage::allFiles("public/images/user/profile_pict");
         $image = $images[rand(0, count($images) - 1)];
         $useProfilePict = rand(0, 1);
-        $ifNotUseProfilePict = "#"  . StrHelper::random(6,  "1234567890ABCDEF");
+        $ifNotUseProfilePict = "#"  . StrHelper::random(6, "1234567890ABCDEF");
 
         return [
-            'name' => $faker_ID->name(),
+            'name' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' =>  bcrypt(StrHelper::random(50)),
