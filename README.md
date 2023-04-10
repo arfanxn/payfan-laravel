@@ -19,20 +19,20 @@ Create environtment file from example.env file
 cp example.env .env 
 ```
 
-Generate APP_KEY environment variable
+Generate JWT secret key / hash key 
 ```sh
 php artisan key:generate
+```
+
+Link storage
+```sh
+php artisan storage:link
 ```
 
 Migrate Payfan required tables and seed data to tables
 ```sh
 php artisan migrate 
 php artisan db:seed
-```
-
-Generate JWT secret key / hash key 
-```sh
-php artisan key:generate
 ```
 
 ## Docker
