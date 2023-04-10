@@ -14,6 +14,16 @@ Install all composer dependencies
 composer install --ignore-platform-reqs
 ```
 
+Create environtment file from example.env file
+```sh
+cp example.env .env 
+```
+
+Generate APP_KEY environment variable
+```sh
+php artisan key:generate
+```
+
 Migrate Payfan required tables and seed data to tables
 ```sh
 php artisan migrate 
